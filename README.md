@@ -1,3 +1,5 @@
+<img src="./logo.png" width="150px" align="right" display="block">
+
 Multivariate Covariance Generalized Linear Models for the Analysis of Experimental Data
 =======================================================================================
 
