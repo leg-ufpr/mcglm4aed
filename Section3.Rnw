@@ -1,0 +1,121 @@
+<<setup-childSection3, include=FALSE>>=
+## set_parent("slides-mrdcr.Rnw")
+
+## Pacotes utilizados nesta seção
+
+@
+
+%%%-------------------------------------------------------------------
+\begin{frame}{Método de máxima verossimilhança}
+\begin{itemize}
+  \item Conhecemos a distribuição que gerou os dados $f(y;\boldsymbol{\theta})$.
+  \item Mas não seu finito vetor de parâmetros $\boldsymbol{\theta} \in \Theta$.
+  \item $\Theta$ em geral é um subconjunto do $\mathbb{R}^n$.
+  \item Dado $y$ uma observação da va $Y$ a função de verossimilhança 
+  $$ L(\boldsymbol{\theta};y) = f(y;\boldsymbol{\theta}). $$
+  \item Note que $f(y;\boldsymbol{\theta})$ é uma função de probabilidade
+  no espaço amostral.
+  \item Porém, $L(\boldsymbol{\theta};y) = f(y;\boldsymbol{\theta})$
+  é uma função no espaço paramétrico $\Theta$.
+  \item $L(\boldsymbol{\theta};y)$ expressa a plausibilidade para
+  diferentes valores dos parâmetros após observarmos $y$ sem ter nenhuma
+  outra informação sobre $\boldsymbol{\theta}$.
+  \item Para dados de contagem a verossimilhança é a probabilidade de
+  observar o ponto $y$ caso $\boldsymbol{\theta}$ seja o verdadeiro
+  valor do parâmetro.
+\end{itemize}
+\end{frame}
+
+%%%-------------------------------------------------------------------
+\begin{frame}{Estimador de máxima verossimilhança}
+\begin{itemize}
+  \item Estimador de máxima verossimilhança (MLE) $L(\hat{\boldsymbol{\theta}}(y);y) = \underset{\boldsymbol{\theta}\in \Theta}\max L(\boldsymbol{\theta};y).$
+  \item Seja $Y_i$ iid va com fp $f(y;\boldsymbol{\theta})$ então
+  $$L(\boldsymbol{\theta};\boldsymbol{y}) = \prod_{i=1}^n L(\boldsymbol{\theta}; y_i) = \prod_{i=1}^n f(y_i; \boldsymbol{\theta}).$$
+  \item Log-verossimilhança
+  $$\ell(\boldsymbol{\theta})=\sum^n_{i=1} \log\{ L(\boldsymbol{\theta}; y_i) \}.$$
+\end{itemize}
+\end{frame}
+
+%%%-------------------------------------------------------------------
+\begin{frame}{Estimador de máxima verossimilhança}
+\begin{itemize}
+  \item MLE em geral pode ser obtido como a solução das equações de verossimilhança (ou escore)
+  $$\mathcal{U}(\boldsymbol{\theta}) = \left ( \frac{\partial \ell(\boldsymbol{\theta})}{\partial \theta_1}^\top, \ldots, \frac{\partial \ell(\boldsymbol{\theta})}{\partial \theta_p}^\top \right )^\top = \boldsymbol{0}.$$
+  \item Soluções analíticas são raras e métodos numéricos são necessários.
+  \item A entrada $(i,j)$ da matrix $p \times p$ de informação de Fisher 
+  $\mathcal{F}_{\boldsymbol{\theta}}$ para o vetor $\boldsymbol{\theta}$ é dada por
+$$
+\mathcal{F}_{\boldsymbol{\theta}_{ij}} =-\mathrm{E} \left \{ \frac{\partial^2 \ell(\boldsymbol{\theta})}{\partial\theta_i\partial\theta_j} \right \}.
+$$
+  \item Algorithm Newton scoring
+$$  
+\boldsymbol{\theta}^{(i+1)} = \boldsymbol{\theta}^{(i)} - \mathcal{F}_{\boldsymbol{\theta}}^{-1} \mathcal{U}(\boldsymbol{\theta}^{(i)}).
+$$
+  \item Distribuição assintótica $\boldsymbol{\hat{\theta}} \sim \mathrm{N}(\boldsymbol{\theta}, \mathcal{F}_{\boldsymbol{\theta}}^{-1})$.
+\end{itemize}
+\end{frame}
+
+%%%-------------------------------------------------------------------
+\begin{frame}{Comentários MLE}
+\begin{itemize}
+  \item A verdadeira distribuição que gerou os dados é conhecida.
+  \item É possível obter de forma analítica a primeira e segunda derivada
+  da log-verossimilhança.
+  \item A log-verossimilhança é
+  \begin{enumerate}
+    \item Poisson sem problemas!
+    \item Count-Gamma: diferença de duas integrais.
+    \item Poisson-Tweedie: expressa como uma integral sem solução analítica.
+    \item COM-Poisson: envolve uma soma infinita.
+  \end{enumerate}
+  \item Nestes casos não é possível obter expressões fechadas para as
+  funções escore e matriz de informação de Fisher.
+  \item Solução! Maximizar diretamente a log-verossimilhança usando
+  algum método quase-Newton ou derivadas-free. 
+  \item Exemplos BFGS, Gradiente conjugado, Nelder-Mead.
+  \item Ver função \texttt{optim()} em \texttt{R}.
+  
+\end{itemize}
+\end{frame}
+
+%%%-------------------------------------------------------------------
+\begin{frame}[fragile]{Exemplo: MLE distribuição Count-Gamma}
+\begin{itemize}
+  \item Log-verossimilhança
+<<echo=TRUE>>=
+# Função de probabilidade
+dgc <- function(y, gamma, alpha, log = FALSE) {
+  p <- pgamma(q = 1,
+              shape = y * alpha,
+              rate = alpha * gamma) -
+    pgamma(q = 1,
+           shape = (y + 1) * alpha,
+           rate = alpha * gamma)
+  if(log == TRUE) {p <- log(p)}
+  return(p)
+}
+# Função de log-verossimilhança
+ll_gc <- function(gamma, alpha, y) {
+  ll <- sum(dgc(y = y, gamma = gamma, alpha = alpha, log = TRUE))
+  return(-ll)
+}
+@
+
+\end{itemize}
+\end{frame}
+
+%%%-------------------------------------------------------------------
+\begin{frame}[fragile]{Exemplo: MLE distribuição Count-Gamma}
+\begin{itemize}
+  \item Maximização numérica e ajuste final
+<<echo=TRUE>>=
+require(bbmle)
+y <- rpois(100, lambda = 10)
+fit_gc <- mle2(ll_gc, start = list("gamma" = 10, "alpha" = 1),
+               data = list("y" = y))
+fit_gc
+@
+
+\end{itemize}
+\end{frame}
