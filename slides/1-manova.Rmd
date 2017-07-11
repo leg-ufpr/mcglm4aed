@@ -1,0 +1,175 @@
+---
+title: "Multivariate analysis of Gaussian data (MANOVA)"
+subtitle: Part I
+author: |
+  | Wagner H. Bonat   | Walmes M. Zeviani |
+  |:-----------------:|:-----------------:|
+  | `wbonat@ufpr.br`  | `walmes@ufpr.br`  |
+date: >
+  63^a^ RBras & 17^o^ SEAGRO</br>
+  July 24--28, 2017</br>
+  UFLA, Lavras/MG
+output:
+  slidy_presentation:
+    css: config/style.css
+    footer: McGLMs for experimental data, Bonat & Zeviani (2017)
+    highlight: haddock
+    includes:
+      in_header: config/MathJax.html
+---
+
+# Motivational data sets
+
+## $\texttt{iris}$ data set
+
+  * $\texttt{iris}$ data set was collected by Anderson (1935) on three
+    species of irises in the Gaspé Peninsula of Quebec, Canada.
+  * This data set was employed by R. A. Fisher (1936)
+    to introduce the method of discriminant analysis.
+  * Easily available in $\texttt{R}$ through $\texttt{data(iris)}$.
+  * Four response variables representing measurements (in cm) of parts
+    of the flowers (length and width of sepal and petal).
+  * One experimental factor with three levels ($\texttt{setosa}$,
+    $\texttt{versicolor}$ and $\texttt{virginica}$) representing the
+    species of iris.
+  * How the species are related with flowers size?
+  * Size is not a really precise response variable and can be understood
+    as a function of the four measured response variables.
+
+```{r, include = FALSE, results = "hide", message = FALSE}
+source("./config/_setup.R")
+library(lattice)
+library(latticeExtra)
+library(gridExtra)
+library(ellipse)
+library(corrplot)
+library(car)
+# library(mcglm)
+```
+
+```{r, include = TRUE, results = "hide", eval = FALSE}
+data(iris)
+
+scatterplotMatrix(~Sepal.Length + Sepal.Width +
+                      Petal.Length + Petal.Width | Species,
+                  data = iris,
+                  smooth = FALSE,
+                  reg.line = FALSE,
+                  ellipse = TRUE,
+                  by.groups = TRUE,
+                  diagonal = "none",
+                  legend.pos = "bottomleft")
+```
+
+```{r, include = TRUE, results = "hide"}
+panel.ell <- function(x, y, ...) {
+    panel.xyplot(x, y, ...)
+    panel.ellipse(x, y, level = 0.5,
+                  center.pch = 19, center.cex = 1, ...)
+    panel.ellipse(x, y, level = 0.9,
+                  center.pch = 19, center.cex = 1, ...)
+}
+
+splom(~iris[1:4],
+      data = iris,
+      auto.key = list(columns = 3,
+                      title = "Species",
+                      cex.title = 1.1),
+      groups = Species,
+      lower.panel = panel.ell,
+      upper.panel = panel.ell)
+```
+
+## $\texttt{soya}$ data set
+
+  * Experiment carried out in a vegetation house with soybeans.
+  * Two plants by plot with three levels of the factor amount of
+    water in the soil ($\texttt{water}$) and five levels of potassium
+    fertilization ($\texttt{pot}$).
+  * The plots were arranged in five blocks ($\texttt{block}$).
+  * Three response variables were measured, namely, grain yield,
+    number of seeds and number of viable peas per plant.
+  * The main goal is to assess the effect of the experimental factors
+    on the soya $\textbf{yield}$.
+  * Soya $\textbf{yield}$ is only indirectly measured through the three measured
+    response variables.
+  * Response variables are of mixed types, i.e. grain yield is a
+    continuous outcome while number of seeds and number of viable peas
+    per plant are examples of count and binomial response variables.
+  * Data set is available in $\texttt{R}$ through the $\texttt{mcglm}$
+    package.
+
+```{r, include = TRUE, results = "hide", message = FALSE}
+# data(soya)
+# soya$viablepeasP <- soya$viablepeas/soya$totalpeas
+
+# splom(~soya[, c(1,4:5,8)],
+#       groups = soya$water,
+#       layout= c(NA, 1),
+#       type = c("p"),
+#       auto.key = TRUE)
+
+data(soybeanwp, package = "wzRfun")
+str(soybeanwp)
+
+soybeanwp$viab <- with(soybeanwp, nvp/(nvp + nip))
+
+
+splom(#~soybeanwp[, c(1, 4, 7, 10)],
+      ~soybeanwp[, c(1, 4:7, 10)],
+      groups = soybeanwp$water,
+      # as.matrix = TRUE,
+      layout = c(NA, 1),
+      upper.panel = function(x, y, groups, ...) {
+          panel.xyplot(x, y, groups = groups, ...)
+          i <- 0
+          by(cbind(x, y),
+             INDICES = groups,
+             FUN = function(m) {
+                 i <<- i + 1
+                 panel.smoother(x = m[, 1],
+                                y = m[, 2],
+                                span = 0.9,
+                                alpha.se = 0.15,
+                                col = trellis.par.get()$superpose.line$col[i])
+             })
+      },
+      auto.key = list(columns = 3,
+                      title = "Water content (%)",
+                      cex.title = 1.1))
+
+# str(soybeanwp)
+
+# Fitting the same model to all response variables.
+m0 <- lm(cbind(yield, w100, Kconc, tg, viab) ~
+             block + water * factor(potassium),
+         data = soybeanwp)
+
+r <- residuals(m0)
+```
+
+```{r}
+# TODO fazer essa coisa acontecer!
+# panel.qqmath.splom <- function(x, ...) {
+#     # panel.qqmath(x, ...)
+#     yr <- current.panel.limits()$ylim
+#     qq <- qqnorm(x, plot.it = FALSE)
+#     # u <- ((x - min(x))/diff(x))
+#     # panel.ecdfplot(x, ...)
+#     panel.xyplot(qq$x, qq$y, ...)
+#     # panel.rug(x = x)
+# }
+#
+# splom(~r,
+#       lower.panel = panel.ell,
+#       upper.panel = panel.ell,
+#       diag.panel = panel.qqmath.splom)
+
+scatterplotMatrix(r,
+                  smooth = FALSE,
+                  reg.line = FALSE,
+                  ellipse = TRUE,
+                  by.groups = TRUE,
+                  diagonal = "qqplot",
+                  legend.pos = "bottomleft")
+```
