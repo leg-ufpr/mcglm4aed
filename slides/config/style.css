@@ -1,0 +1,199 @@
+/* Corpo ------------------------------------ */
+
+body {
+    color: black;
+    /* font-family: "Gill Sans MT", "Gill Sans", GillSans, sans-serif; */
+    /* font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif; */
+    font-family: "Lato", sans-serif;
+    font-size: 14pt;
+    margin: auto;
+    width: 1000px;
+    position: unset;
+    padding-top: 3em;
+}
+
+body.single_slide div.slide {
+    position: unset;
+}
+
+div.first-slide {
+    margin-top: 20%;
+}
+
+div.level1 h1 {
+    margin: 25% auto auto auto;
+    display: block;
+    color: #777;
+    /* background: red; */
+    text-align: center;
+    /* text-transform: uppercase; */
+    /* font-size: 70px; */
+    font-size: 200%;
+}
+
+/* Listas ----------------------------------- */
+
+ul,
+ol,
+ul li,
+ol li,
+li li:first-child,
+li li:last-child {
+    margin-top: 0px;
+    margin-bottom: 0px;
+    /* border: 1px solid grey; */
+}
+
+li:first-child {
+    margin-top: 10px;
+}
+
+li:last-child {
+    margin-bottom: 10px;
+}
+
+ul {
+    margin-left: 3em;
+}
+
+ul ul, ol ul {
+    margin-left: 1em;
+}
+
+ol ol, ul ol {
+    margin-left: 0em;
+}
+
+li ul li, li ol li {
+    font-size: 100%;
+    font-style: normal;
+}
+
+ul li, li ul li, li li ul li {
+    list-style: none;
+}
+
+/* http://www.w3schools.com/charsets/ref_utf_geometric.asp */
+ul li:before {
+    content: '\25B8';
+    margin-left: -1em;
+    position: absolute;
+}
+
+li ul li:before {
+    content: '\25B9';
+    color: inherit;
+}
+
+li li ul li:before {
+    content: '\25B8';
+    color: gray;
+}
+
+/* Parafrases ------------------------------- */
+
+blockquote {
+    width: 600px;
+    box-shadow: none;
+    background: none;
+    display: block;
+    margin: auto;
+}
+
+blockquote p {
+    text-indent: 0em;
+}
+
+blockquote p:last-child {
+    text-indent: 0em;
+    text-align: right;
+    font-style: normal;
+    display: inherit;
+}
+
+/* Tabela ----------------------------------- */
+
+table caption {
+    text-align: left;
+}
+
+table {
+    margin: auto;
+}
+
+table tbody {
+    border-bottom: 5px solid #DDD;
+    border-top: 5px solid #DDD;
+}
+
+table td {
+   border-bottom: 1px solid #DDD;
+}
+
+table th {
+    border-top: 2px solid #DDD;
+    border-bottom: 2px solid #DDD;
+}
+
+/* Tabela com o nome dos autores. */
+div.first-slide table th,
+div.first-slide table td,
+div.first-slide table tbody {
+    border: none;
+    padding:0 25px 0 25px;
+}
+
+/* Figura ----------------------------------- */
+
+div.figure {
+    width: 90%;
+    margin: auto;
+    /* background: #DDD; */
+}
+
+img {
+    margin: auto;
+    display: block;
+}
+
+p.caption {
+    text-align: left;
+}
+
+/* Código ----------------------------------- */
+
+div.sourceCode {
+    overflow-x: unset;
+    /* margin-left: -0.3em; */
+    /* margin-right: -0.3em; */
+}
+
+pre.sourceCode,
+code.sourceCode {
+    font-size: 80%;
+}
+
+pre, code {
+    font-size: 80%;
+    background-color: transparent;
+}
+
+pre {
+    font-weight: normal;
+    line-height: 100%;
+    padding: 8px;
+    /* border: none; */
+    border-width: 1px;
+    border-radius: 3px;
+    border-color: #BBBDC0;
+    color: #383838;
+    background-color: #E4E5E7;
+}
+
+/* Referências ------------------------------ */
+
+div.references p {
+    text-indent: -1em;
+    margin-left: 1em;
+    text-align: left;
+}

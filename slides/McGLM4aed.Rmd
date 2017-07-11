@@ -1,0 +1,465 @@
+---
+title: Multivariate covariance generalized linear models for analysis of experimental
+  data
+author: "Phd. Wagner Hugo Bonat &  Dr. Walmes Marques Zeviani"
+date: "July 24-28 2017"
+output:
+  slidy_presentation:
+    css: config/style.css
+    footer: McGLMs for experimental data , Bonat & Zeviani (2017)
+    highlight: haddock
+    includes:
+      in_header: config/MathJax.html
+  ioslides_presentation:
+    highlight: haddock
+  beamer_presentation:
+    highlight: haddock
+---
+
+<!-- Não mexer aqui. -->
+<style type="text/css">
+body {
+    font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+}
+img {
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.75);
+}
+tt, code, pre {
+    font-family: "Ubuntu Mono", "Inconsolata", "Andale Mono", monospace;
+}
+</style>
+<!-- Não mexer aqui. -->
+
+
+# Multivariate covariance generalized linear models for analysis of experimental data
+
+## Introduction
+
+### What is this course about
+
+  * Often in experimental studies many outcomes are collected simultaneously.
+  * Sometimes the outcomes or response variables are of mixed types.
+  * Methods for the separate analysis of such outcomes are well 
+  established in the literature.
+    - Continuous and symmetric data: linear regression models.
+    - Continuous and assymetric data: gamma and inverse Gaussian regression models.
+    - Semi-continuous data: Tweedie and zero-inflated regression models.
+    - Counting data: Poisson, negative binomial, Poisson-Tweedie and $\ldots$ regression models.
+    - Bounded data: logistic, probit, beta, simplex and $\ldots$  regression models.
+
+### Main goal
+  
+  * Purpose of this course is to present the state of art in
+  
+  **Multivariate analysis of experimental data based on the  
+  multivariate covariance generalized linear models class.**
+
+### Learnings objectives
+
+  * Goals: After this course participants will be able to
+    - identify settings in which a multivariate analysis is required,
+    - construct and fit an appropriate multivariate model, and
+    - correctly interpret the obtained results.
+    
+  * The course will be explanatory rather than mathematically rigorous
+    - emphasis is given on sufficient detail in order for participants 
+    to obtain a clear view on the multivariate models and how they should 
+    be used in practice.
+
+## Agenda
+
+  * **Part I: Multivariate analysis of Gaussian data (MANOVA)**  
+    - Motivational datasets and research questions. 
+    - General linear model. 
+       - Estimation and Inference (least squares and MLE). 
+       - General linear hypotheses.
+       - Multivariate hypotheses tests.
+       - Computational implementation in $\texttt{R}$.
+       - $\texttt{lm()}$ and $\texttt{manova()}$ functions.
+       - MANOVA as a McGLM.
+       - $\texttt{mcglm()}$ function.
+       - Worked examples.
+       - Assumptions and limitations.
+
+  * **Part II: Multivariate analysis of non-Gaussian data (McGLMs)**  
+  
+    - Dealing with non-Gaussian data: Multivariate generalized linear models (MGLMs).
+    - Dealing with non-independent data: Linear covariance models (LCMs).
+    - Specifying the matrix linear predictor:
+        - Repeated measures.
+        - Longitudinal studies.
+        - Mixed models.
+    - Estimation and Inference.
+    - General linear hypotheses tests.
+    - MANOVA-like test for non-Gaussian data.
+    - Worked examples.
+    - Discussions and extensions.
+
+---
+
+## Motivational data sets
+
+### $\texttt{iris}$ data set
+
+  * $\texttt{iris}$ data set was collected by Anderson (1935) on three 
+  species of irises in the Gaspé Peninsula of Quebec, Canada.
+  * This data set was employed by R. A. Fisher (1936) 
+  to introduce the method of discriminant analysis.
+  * Easily available in $\texttt{R}$ through $\texttt{data(iris)}$.
+  * Four response variables representing measurements (in cm) of parts 
+  of the flowers (length and width of sepal and petal).
+  * One experimental factor with three levels ($\texttt{setosa}$, 
+  $\texttt{versicolor}$ and $\texttt{virginica}$) representing the 
+  species of iris.
+  * How the species are related with flowers size?
+  * Size is not a really precise response variable and can be understood
+  as a function of the four measured response variables.
+
+```{r, include = FALSE, results = "hide", message = FALSE}
+library(lattice)
+library(latticeExtra)
+library(ellipse)
+library(corrplot)
+library(car)
+library(gridExtra)
+require(mcglm)
+```
+
+```{r, include = TRUE, results = "hide", message = FALSE}
+data(iris)
+scatterplotMatrix(~ Sepal.Length + Sepal.Width + Petal.Length + Petal.Width | Species, 
+                  data = iris, smooth = FALSE, reg.line = FALSE, ellipse = TRUE, 
+                  by.groups = TRUE, diagonal = "none", legend.pos = "bottomleft")
+
+```
+
+---
+
+### $\texttt{soya}$ data set
+
+  * Experiment carried out in a vegetation house with soybeans.
+  * Two plants by plot with three levels of the factor amount of 
+  water in the soil ($\texttt{water}$) and five levels of potassium 
+  fertilization ($\texttt{pot}$). 
+  * The plots were arranged in five blocks ($\texttt{block}$).
+  * Three response variables were measured, namely, grain yield, 
+  number of seeds and number of viable peas per plant.
+  * The main goal is to assess the effect of the experimental factors
+  on the soya $\textbf{yield}$.
+  * Soya $\textbf{yield}$ is only indirectly measured through the three measured 
+  response variables.
+  * Response variables are of mixed types, i.e. grain yield is a 
+  continuous outcome while number of seeds and number of viable peas 
+  per plant are examples of count and binomial response variables.
+  * Data set is available in $\texttt{R}$ through the $\texttt{mcglm}$
+  package.
+
+```{r, include = TRUE, results = "hide", message = FALSE}
+data(soya)
+soya$viablepeasP <- soya$viablepeas / soya$totalpeas
+splom(~soya[, c(1,4:5,8)], groups = soya$water, layout= c(NA, 1), 
+      type = c("p"), auto.key= TRUE)
+
+```
+
+
+
+---
+
+### Motivation and research questions
+
+  * Models of nature and human behavior must often account for multiple,
+  inter-related variables that are conceptualized simultaneously or 
+  over time.
+  * Often in the same experiment more than one response variables are
+  measured simultaneously. 
+  * Multivariate experiments are common when we have a set of variables
+  to describe an attribute or latent variable.
+    - Size variables (weight, height, width, diameter, etc).
+    - Soil contents (P, K, pH, Ca, Mg, CTC, etc).
+    - Personality traits (example HERE).
+  * In general, the research questions are related to all or a combination
+  of the response variables.
+  * Examples of research questions.
+    - Which is the best (set of) variable to measure?
+    - What are the main effects of the covariates or experimental factors?
+    - What are the interaction among experimental factors?
+    - What is the strenght of association/correlation between response variables?
+    - Which response variables are more affected by the experimental factors?
+
+## **Part I: Multivariate analysis of Gaussian data **  
+  - General linear model
+
+$$
+\begin{pmatrix}
+Y_{11} & \ldots & Y_{1R}\\ 
+\vdots  & \ddots  & \vdots \\ 
+Y_{N1} & \ldots  & Y_{NR}
+\end{pmatrix} = 
+\begin{pmatrix}
+x_{11} & \ldots  & x_{1k}\\ 
+\vdots & \ddots & \vdots \\ 
+x_{N1} & \ldots & x_{Nk}
+\end{pmatrix} \begin{pmatrix}
+\beta_{01} & \ldots & \beta_{0R}\\ 
+\vdots & \ddots & \vdots \\ 
+\beta_{k1} & \ldots & \beta_{kR} 
+\end{pmatrix} + \begin{pmatrix}
+\epsilon_{11} & \ldots & \epsilon_{1R}\\ 
+\vdots & \ddots & \vdots \\ 
+\epsilon_{N1} & \ldots & \epsilon_{NR} 
+\end{pmatrix}
+$$
+
+  - Matrix notation  
+  
+$$
+\mathrm{Y} = \mathrm{X}\mathbf{B} + \mathbf{E}
+$$
+
+  - $\mathrm{Y}$ is a matrix of $N$ observations on $R$ response variables.
+  - $\mathrm{X}$ is an $(N \times k)$ model matrix with collumns for $k$ regressors (experimental factors).
+  - $\mathrm{B}$ is a $(k \times R)$ matrix of regression coefficients.
+  - $\mathrm{E}$ is an $(N \times R)$ matrix of errors, 
+  such that $\epsilon^{\top}_i \sim N_{R}(\mathbf{0}, \Sigma)$.
+  - $\Sigma$ is an ($R \times R$) covariance matrix, constant across observations, i.e.
+  
+  $$ \Sigma = \begin{pmatrix} 
+  \sigma_{11} & \ldots & \sigma_{1R} \\  
+  \vdots & \ddots & \vdots \\  
+  \sigma_{R1}  & \ldots & \sigma_{RR} 
+  \end{pmatrix}.
+  $$
+  
+  - Least square estimators for regression coefficients
+  
+$$ 
+\hat{\mathrm{B}} = (\mathrm{X}^{\top}\mathrm{X})^{-1}\mathrm{X}^{\top}\mathrm{Y}.
+$$
+
+  - $\Sigma$ can be estimated by the empirical covariance matrix.
+  
+$$
+\hat{\Sigma} = \frac{(\mathrm{Y} - \mathrm{X} \hat{\mathrm{B}} )^{\top}(\mathrm{Y} - \mathrm{X} \hat{\mathrm{B}})}{n}
+$$
+
+---
+
+##  R code
+
+```{r, include = TRUE, message = FALSE}
+data(iris)
+head(iris)
+
+# Response variable matrix
+Y <- as.matrix(iris[,1:4],ncol = 4, nrow = 150)
+
+# Design matrix
+X = model.matrix(~Species, data = iris)
+
+# Regression coefficients
+B <- solve(tcrossprod(t(X)))%*%t(X)%*%Y
+B
+
+# Covariance matrix
+Sigma <- t(Y - X%*%B)%*%(Y - X%*%B)/dim(iris)[1]
+Sigma
+
+# Correlation matrix
+cov2cor(Sigma)
+```
+---
+
+### Model-based approach
+  - Let $\mathcal{Y} = (\mathbf{Y}_1^T, \ldots, \mathbf{Y}_R^T)^T$ be 
+  the stacked vector $(NR \times 1)$ of the outcome matrix 
+  $\mathbf{Y}_{N \times R}$ by columns.
+  - Let $\mathbf{X} = \mathrm{Bdiag}(\mathrm{X}_1, \ldots, \mathrm{X}_R)$ 
+  be an $(NR \times k)$ design matrix, where the operator $\mathrm{Bdiag}$ denotes 
+  a block diagonal matrix whose entries are given by $\mathrm{X}$.
+  - We can easily extend to the case where $X$ is different for
+  each response variable.
+  - Let $\boldsymbol{\beta} = (\boldsymbol{\beta}_1^T, \ldots, \boldsymbol{\beta}_R^T)^T$ 
+  be the stacked vector $(K \times 1)$ of the regression parameters matrix $\mathbf{B}$ by columns.
+  - General linear model
+  
+  $$ \mathcal{Y} \sim \mathrm{N}_{NR}(\mathbf{X}\boldsymbol{\beta}, \Sigma \otimes \mathrm{I})$$
+  where $\mathrm{I}$ denotes an $(N \times N)$ identity matrix and $\otimes$ denotes
+  the Kronecker product.
+  
+  - Equivalently, we have
+  
+  $$ \mathcal{Y} = \mathbf{X}\boldsymbol{\beta} + \boldsymbol{\epsilon} $$
+  where $\boldsymbol{\epsilon} \sim \mathrm{N}_{NR}(\boldsymbol{0},\Sigma \otimes \mathrm{I})$.
+  
+  * It is trivial to show that
+  
+  $$ \mathrm{E}(\mathcal{Y}) = \mathbf{X}\boldsymbol{\beta} $$
+  $$ \mathrm{var}(\mathcal{Y}) = \Sigma \otimes \mathrm{I}.$$
+
+- For simplicity denote $\Omega = \Sigma \otimes \mathrm{I}.$
+
+---
+
+### Maximum likelihood estimation for the general linear model
+
+  - Likelihood function
+  
+  $$ 
+  L(\boldsymbol{\beta}, \Omega) = (2\pi)^{ -\frac{NR}{2} } |\Omega|^{-\frac{1}{2}} \exp \left \{ -\frac{1}{2}(\mathcal{Y} - \mathbf{X}\boldsymbol{\beta})^{\top}\Omega^{-1} (\mathcal{Y} - \mathbf{X}\boldsymbol{\beta}) \right \}.
+  $$
+  - Log-likelihood function
+  
+  $$ 
+  l(\boldsymbol{\beta}, \Omega) = -\frac{NR}{2}\log(2\pi) -\frac{1}{2}\log |\Omega|  -\frac{1}{2}(\mathcal{Y} - \mathbf{X}\boldsymbol{\beta})^{\top}\Omega^{-1} (\mathcal{Y} - \mathbf{X}\boldsymbol{\beta}).
+  $$
+  
+  - Score function for $\boldsymbol{\beta}$ is given by
+  
+  $$ 
+  U_{\boldsymbol{\beta}}(\boldsymbol{\beta}, \Omega) = \frac{\partial l(\boldsymbol{\beta}, \Omega)}{\partial \boldsymbol{\beta}} = \mathbf{X}^{\top} \Omega^{-1}(\mathcal{Y} - \mathbf{X}\boldsymbol{\beta}).
+  $$
+  
+  - Maximum likelihood estimator (MLE) for $\boldsymbol{\beta}$
+  
+  $$ 
+  \hat{\boldsymbol{\beta}} = (\mathbf{X}^{\top}\mathbf{X})^{-1}\mathbf{X}^{\top}\mathcal{Y}. 
+  $$
+  
+  - Fisher Information Matrix for $\boldsymbol{\beta}$
+  
+  $$ 
+  \mathcal{F}_{\boldsymbol{\beta}} = \mathbf{X}^{\top}\Omega^{-1}\mathbf{X}.
+  $$
+  
+  - Let $\boldsymbol{\sigma}$ be the stacked vector $(Q \times 1)$ 
+  of the covariance parameters matrix $\Omega$ by columns.
+  - We introduce the notation $\Omega(\boldsymbol{\sigma})$ to emphasize that
+  $\Omega$ is composed by the components of $\boldsymbol{\sigma}$.
+  - Score function for the component $\sigma_{i}$ is given by
+  
+  $$ U_{\sigma_{i}}(\boldsymbol{\beta}, \Omega(\boldsymbol{\sigma})) = 
+  \frac{\partial l(\boldsymbol{\beta}, \Omega(\boldsymbol{\sigma}))}{\partial \sigma_{i}} = 
+  -\frac{1}{2}\left \{ \Omega(\boldsymbol{\sigma})^{-1} - \Omega(\boldsymbol{\sigma})^{-1}(\mathcal{Y} - \mathbf{X}\boldsymbol{\beta})(\mathcal{Y} - \mathbf{X}\boldsymbol{\beta})^{\top}\Omega(\boldsymbol{\sigma})^{-1} \right \}
+  \frac{\partial \Omega(\boldsymbol{\sigma})}{\partial \sigma_{i}}.
+  $$
+  
+  - After some calculation, we can show that the MLE for $\Omega$ is given by
+  
+  $$ 
+  \hat{\Omega} = \hat{\Sigma} \otimes \mathrm{I},
+  $$
+  where $\hat{\Sigma}$ is the empirical covariance matrix.
+  - The $(i,j)$ entry of the Fisher Information matrix for the components $\sigma_i$ and $\sigma_j$
+  is given by
+  
+  $$
+  \mathcal{F}_{\sigma_i \sigma_j} = \frac{1}{2}\mathrm{tr}(\mathrm{W}_{\sigma_i}\Omega(\boldsymbol{\sigma}) \mathrm{W}_{\sigma_j}\Omega(\boldsymbol{\sigma})),
+  $$
+  where $\mathrm{W}_{\sigma_i} = -\frac{\partial \Omega(\boldsymbol{\sigma})^{-1}}{\partial \sigma_i}$.
+  - Let $\mathcal{F}_{\boldsymbol{\sigma}}$ be the $Q \times Q$ Fisher information matrix
+  for the vector $\boldsymbol{\sigma}$.
+  - It is easy to show that $\boldsymbol{\beta}$ and $\boldsymbol{\sigma}$ are
+  orthogonal. 
+  - Fisher information matrix for $\boldsymbol{\theta} = (\boldsymbol{\beta}^{\top}, \boldsymbol{\sigma}^{\top})^{\top}$ is given by
+  
+  $$ 
+  \mathcal{F}_{\boldsymbol{\theta}} = \begin{pmatrix} 
+  \mathcal{F}_{\boldsymbol{\beta}} & \boldsymbol{0} \\  
+  \boldsymbol{0} & \mathcal{F}_{\boldsymbol{\sigma}} 
+  \end{pmatrix}.
+  $$
+  
+  - Asymptotic distribution of the MLE
+  
+  $$ 
+  \hat{\boldsymbol{\theta}} \sim N_{P+Q}(\boldsymbol{\theta},\mathcal{F}_{\boldsymbol{\theta}}^{-1}).
+  $$
+
+---
+
+##  R code
+```{r, include = TRUE, message = FALSE}
+# Loading data set
+data(iris)
+
+# Fitting the model
+fit1 <- lm(cbind(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width) ~ Species, data = iris)
+
+# Regression coefficients
+coef(fit1)
+
+# Covariance matrix
+cov(residuals(fit1))
+
+```
+  - It provides exactly the same estimates that separate calls to the $\texttt{lm()}$ 
+  function.
+  - Standard errors for regression coefficients are available through
+  the function $\texttt{vcov()}$.
+  - Standard errors for covariance coefficients are not available.
+
+---
+
+### Multivariate hypotheses tests
+  - Standard approaches are based on the decomposition of the total
+  sum of squares and cross products (SSP) into regression and residuals, i.e.
+  
+  \begin{align}
+  \mathrm{SSP}_{T} &=& \mathrm{Y}^{\top} \mathrm{Y} - N \bar{\mathrm{Y}}\bar{\mathrm{Y}}^{\top} \\
+          &=& \hat{\mathrm{E}}^{\top} \hat{\mathrm{E}} + (\hat{\mathrm{Y}}^{\top} \hat{\mathrm{Y}} - N  \bar{\mathrm{Y}}\bar{\mathrm{Y}}^{\top}) \\
+          &=& \mathrm{SSP}_{R} + \mathrm{SSP}_{Reg},
+  \end{align}
+  where $\bar{\mathrm{Y}}$ is the $(R \times 1)$ vector of means for
+  the response variables.
+  
+  - $\hat{\mathrm{Y}} = \mathrm{X} \hat{\mathrm{B}}$ is the matrix of fitted values.
+  - $\hat{\mathrm{E}} = \mathrm{Y} - \hat{\mathrm{Y}}$ is the matrix of residuals.
+  - Let $\mathrm{SSP}_H$ denotes the incremental $\mathrm{SSP}$ matrix
+  for a hypothesis.
+  - Multivariate tests are based on the $R$ eigenvalues of $\mathrm{SSP}_H \mathrm{SSP}_R^{-1}$.
+  - Let $\boldsymbol{\lambda}$ denote the eigenvalues of $\mathrm{SSP}_H \mathrm{SSP}_R^{-1}$, 
+  that is, the values of $\boldsymbol{\lambda}$ for which
+  
+  $$ 
+  | \mathrm{SSP}_H \mathrm{SSP}_R^{-1} - \boldsymbol{\lambda} \mathrm{I} | = 0.
+  $$
+  
+  - The four most employed multivariate test statistics are functions
+  of $\boldsymbol{\lambda}$:
+    * Pillai-Bartlett Trace, $T_{PB} = \sum_{i = 1}^{R} \frac{\lambda_i}{(1- \lambda_i)}.$
+    * Hotelling-Lawley Trace, $T_{HL} = \sum_{i = 1}^{R} \lambda_i.$
+    * Wilk's Lambda, $\Lambda = \prod_{i=1}^{R} \frac{1}{1+\lambda_i}.$
+    * Roy's maximum root, $T_{R} = \lambda_1.$
+  - 
+  
+  
+  
+  
+  
+  
+
+
+
+
+
+## Future research
+
+  * Implement multivariate hypothesis tests for McGLM.
+  * Explore the multiple design multivariate linear models.
+  * A set of functions to communicate with `multcomp::glht()`.
+
+## Next topics
+
+  * Reapeted measures design.
+  * Profile analysis.
+  * Analysis for the canonical variates .
+  * Multiple comparisons procedures.
+  * Checking model assumptions.
+  * Multiple design linear regression models.
+
+---
+
+<center>
+<p style='font-size: 80px;'>Thank you!</p>
+</center>
