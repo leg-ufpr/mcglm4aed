@@ -23,17 +23,17 @@ output:
 
 # Motivational data sets
 
-## $\texttt{iris}$ data set
+## `iris` data set
 
-  * $\texttt{iris}$ data set was collected by Anderson (1935) on three
+  * `iris` data set was collected by Anderson (1935) on three
     species of irises in the Gaspé Peninsula of Quebec, Canada.
   * This data set was employed by R. A. Fisher (1936)
     to introduce the method of discriminant analysis.
-  * Easily available in $\texttt{R}$ through $\texttt{data(iris)}$.
+  * Easily available in $\textsf{R}$ through `data(iris)`.
   * Four response variables representing measurements (in cm) of parts
     of the flowers (length and width of sepal and petal).
-  * One experimental factor with three levels ($\texttt{setosa}$,
-    $\texttt{versicolor}$ and $\texttt{virginica}$) representing the
+  * One experimental factor with three levels `setosa`,
+    `versicolor` and `virginica` representing the
     species of iris.
   * How the species are related with flowers size?
   * Size is not a really precise response variable and can be understood
@@ -84,13 +84,13 @@ splom(~iris[1:4],
       upper.panel = panel.ell)
 ```
 
-## $\texttt{soya}$ data set
+## `soya` data set
 
   * Experiment carried out in a vegetation house with soybeans.
   * Two plants by plot with three levels of the factor amount of
-    water in the soil ($\texttt{water}$) and five levels of potassium
-    fertilization ($\texttt{pot}$).
-  * The plots were arranged in five blocks ($\texttt{block}$).
+    water in the soil (`water`) and five levels of potassium
+    fertilization (`pot`).
+  * The plots were arranged in five blocks (`block`).
   * Three response variables were measured, namely, grain yield,
     number of seeds and number of viable peas per plant.
   * The main goal is to assess the effect of the experimental factors
@@ -100,7 +100,7 @@ splom(~iris[1:4],
   * Response variables are of mixed types, i.e. grain yield is a
     continuous outcome while number of seeds and number of viable peas
     per plant are examples of count and binomial response variables.
-  * Data set is available in $\texttt{R}$ through the $\texttt{mcglm}$
+  * Data set is available in $\textsf{R}$ through the `mcglm`
     package.
 
 ```{r, include = TRUE, results = "hide", message = FALSE}
