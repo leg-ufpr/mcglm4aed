@@ -1,14 +1,14 @@
 library(knitr)
 opts_chunk$set(
-    echo = FALSE,
+    # echo = FALSE,
     cache = FALSE,
     tidy = FALSE,
-    message = FALSE,
-    warning = FALSE,
-    fig.width = 9,
-    fig.height = 5,
+    # message = FALSE,
+    # warning = FALSE,
+    fig.width = 7,
+    fig.height = 7,
     fig.align = "center",
-    out.width = "1\\textwidth",
+    out.width = "90%",
     dev.args = list(family = "Palatino"))
 
 # Trellis graphical style.
