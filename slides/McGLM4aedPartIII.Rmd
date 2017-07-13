@@ -1,0 +1,545 @@
+---
+title: Multivariate covariance generalized linear models for analysis of experimental
+  data
+author: "Phd. Wagner Hugo Bonat &  Dr. Walmes Marques Zeviani"
+date: "July 24-28 2017"
+#bibliography: config/ref.bib
+output:
+  slidy_presentation:
+    css: config/style.css
+    footer: McGLMs for experimental data , Bonat & Zeviani (2017)
+    highlight: haddock
+    includes:
+      in_header: config/MathJax.html
+  ioslides_presentation:
+    highlight: haddock
+  beamer_presentation:
+    highlight: haddock
+---
+
+<!-- Não mexer aqui. -->
+<style type="text/css">
+body {
+    font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+}
+img {
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.75);
+}
+tt, code, pre {
+    font-family: "Ubuntu Mono", "Inconsolata", "Andale Mono", monospace;
+}
+</style>
+<!-- Não mexer aqui. -->
+
+
+# Multivariate covariance generalized linear models for analysis of experimental data
+
+## **Part II: Multivariate analysis of non-Gaussian data **
+
+  - General setup
+```{r}
+data(iris)
+head(iris)
+```
+  
+  - MANOVA can deal only with Gaussian data.
+  - Homogeneity of variances and covariances.
+  - Independent observations within response variables.
+  - What do we need ?
+    - Generalized linear models (GLM) to deal with non-Gaussian data.
+    - Flexibility to deal with different types of dependence structures.
+    - Multivariate response variables possibly of mixed types.
+    - Ideal approach---easy to specify, fit, interpret and teach.
+
+---
+
+## **Part II: Multivariate analysis of non-Gaussian data **
+
+  - Goal 1: Make GLM more flexible to deal with:
+    - Non-negative highly right-skewed data and continuous data with 
+    probability mass at zero (Bonat and Kokonendji, 2017).
+    - Under, equi, overdispersed, zero-inflated and heavy-tailed 
+    count data (Bonat et.al. 2017).
+    - Bounded data (Bonat et. al. 2017).
+  - Goal 2: Extend GLM to cGLM to deal with:
+    - Mixed models (Pinheiro and Bates, 2000). 
+    - Repeated measures (Diggle et. al. 1994).
+    - Time series (Box and Jenkins, 1976).
+    - Spatial and space-time data (Cressie, 1993; Knorr-Held, 2000).
+    - Genetic and Twin data (Bonat, 2017; Wang et. al. 2011).
+  - Goal 3: Extend cGLM to McGLM to deal with:
+    - Multivariate response variables.
+    - Response variables of mixed types.
+    - Identify the general linear model and MANOVA as special cases.
+  - Goal 4: Extend multivariate hypotheses tests to non-Gaussian data.
+  - Goal 5: Provide software implementation in $\texttt{R}$.
+
+---
+
+### Flexible Generalized Linear Models
+
+  - Let $\boldsymbol{Y}$ be an $N \times 1$ response vector.
+  - Let $\boldsymbol{X}$ be an $N \times k$ design matrix.
+  - Let $\boldsymbol{\beta}$ be a $k \times 1$ parameter vector.
+  - Orthodox GLM
+  
+\begin{eqnarray}
+\label{modelGLM}
+\mathrm{E}(\boldsymbol{Y}) &=& \boldsymbol{\mu} = g^{-1}(\boldsymbol{X} \boldsymbol{\beta})  \nonumber \\
+\mathrm{Var}(\boldsymbol{Y}) &=& \boldsymbol{\Sigma} = \mathrm{V}(\boldsymbol{\mu};p)^{\frac{1}{2}} ( \tau_0 \boldsymbol{I} ) \mathrm{V}(\boldsymbol{\mu};p)^{\frac{1}{2}}.
+\end{eqnarray}
+
+  - $g$ is the link function.
+  - $\mathrm{V}(\boldsymbol{\mu};p) = \mathrm{diag}(\vartheta(\boldsymbol{\mu};p))$ 
+  where $\vartheta(\boldsymbol{\mu};p)$ is the variance function.
+  - $p$ and $\tau_0$ are the power and dispersion parameters, respectively.  
+  - $\boldsymbol{I}$ is an identity matrix.
+  - The standard linear model is obtained for identity link and constant
+  variance functions.
+
+---
+
+### Variance/dispersion functions
+
+  - Tweedie family (variance function), characterized by
+
+$$ \vartheta(\boldsymbol{\mu};p) = \mu^p$$ 
+  
+  - Gaussian ($p = 0$), gamma ($p = 2$) and inverse Gaussian ($p = 3$).
+  - Deals with symmetric, skewed and zero-inflated continuous outcomes.
+  - Poisson-Tweedie variance function 
+  
+  $$ \vartheta(\boldsymbol{\mu};p) = \mu + \mu^p \exp \left \{(2-p)\Phi_p(\mu)\right \}.$$
+ 
+ - Poisson-Tweedie family (dispersion function), characterized by
+
+$$
+\vartheta(\boldsymbol{\mu};p) = \mu + \mu^p 
+$$
+  
+  - Hermite ($p=0$), Neyman Type A ($p=1$), negative binomial ($p=2$).
+  - Special form in (1) $\boldsymbol{\Sigma} = \mathrm{diag}(\boldsymbol{\mu}) + \mathrm{V}(\boldsymbol{\mu};p)^{\frac{1}{2}} ( \tau_0 \boldsymbol{I} ) \mathrm{V}(\boldsymbol{\mu};p)^{\frac{1}{2}}$.
+  - Deals with over-/under-dispersion and zero-inflated count outcomes.
+  - Binomial family, characterized by 
+  
+  $$\vartheta(\boldsymbol{\mu}) = \mu(1-\mu).$$
+  
+  - Deals with binary, binomial and proportion outcomes.
+  - Extended binomial variance function, 
+  
+  $$
+  \vartheta(\boldsymbol{\mu}; p, q) = \mu^p(1-\mu)^q.
+  $$
+  
+  - Extra flexibility to deal with binary, binomial and proportion outcomes.
+  - Three sets of variance functions.
+  - Deals with the most common outcomes types.
+  - Power parameter identifies the distribution.
+  - Estimation of power parameter (model selection).
+  - Additional flexibility.
+  - Deals only with independent observations.
+
+---
+
+### Covariance Generalized Linear Models
+
+  - Change the identity matrix in (1) to a non-diagonal matrix $\boldsymbol{\Omega}(\boldsymbol{\tau})$.
+  
+  $$
+\mathrm{Var}(\boldsymbol{Y}) = \boldsymbol{\Sigma} = \mathrm{V}(\boldsymbol{\mu};p)^{\frac{1}{2}} (\boldsymbol{\Omega}(\boldsymbol{\tau})) \mathrm{V}(\boldsymbol{\mu};p)^{\frac{1}{2}}. $$
+
+  - Similar to working correlation matrix (GEE) (Liang and Zeger, 1987).
+  - Model $\boldsymbol{\Omega}(\boldsymbol{\tau})$ as a linear combination of known matrices.
+
+$$h(\boldsymbol{\Omega}(\boldsymbol{\tau})) = \tau_0 Z_0 + \cdots + \tau_D Z_D$$
+where $h$ is a covariance link function (Pourahmadi, 2011). 
+
+  - $Z_d$ with $d = 0, \ldots, D$ are known matrices. 
+  - $\boldsymbol{\tau} = (\tau_0,\cdots, \tau_D)$ is a $D \times 1$ dispersion parameter vector.
+  - Identity, inverse, exponential-matrix, modified Cholesky decomposition, etc.
+  - Deals only with one response variable.
+  - Examples of covariance linear models:
+    - Double generalized linear models.
+    - Linear mixed models.
+    - Moving average models.
+    - Exchangeable or compound symmetry and unstructured models (popular in longitudinal data analysis).
+    - Conditional autoregressive models (time series, spatial and space-time data).
+    - Models in quantitative genetic and phylogenetic.
+    - Models for Twin and family data.
+    - and many more.
+  
+---
+
+### Example 1: Gaussian linear mixed model
+
+  -  Gaussian linear mixed model
+  $$\boldsymbol{Y} = \boldsymbol{X} \boldsymbol{\beta} + \boldsymbol{U} \boldsymbol{\gamma} + \boldsymbol{\epsilon}$$ 
+  where $\boldsymbol{\gamma} \sim N(\boldsymbol{0},\boldsymbol{D})$ and $\boldsymbol{\epsilon}\sim N(\boldsymbol{0},\tau_0 \boldsymbol{I})$.
+  - It is easy to show that
+\begin{eqnarray}
+\mathrm{E}(\boldsymbol{Y}) &=& \boldsymbol{\mu} = \boldsymbol{X} \boldsymbol{\beta}  \nonumber \\
+\mathrm{Var}(\boldsymbol{Y}) &=& \boldsymbol{\Omega} = \tau_0 \boldsymbol{I} + \boldsymbol{U}\boldsymbol{D}\boldsymbol{U}^{\top} \nonumber
+\end{eqnarray}
+- Furthermore,
+$$ \boldsymbol{U}\boldsymbol{D}\boldsymbol{U}^{\top} = \sum_{j \leq q}^k d_{jq} \boldsymbol{V}_{jq}$$
+where $\boldsymbol{V}_{jj} = \boldsymbol{U_{\cdot j}} \boldsymbol{U_{\cdot j}}^{\top},
+\quad \boldsymbol{V}_{jq} = \boldsymbol{U_{\cdot j}} \boldsymbol{U_{\cdot q}}^{\top} + \boldsymbol{U_{\cdot q}} \boldsymbol{U_{\cdot j}}^{\top}$ for $j \neq q$ and $\boldsymbol{U_{\cdot j}}$ denotes the j$th$ column of $\boldsymbol{U}$.
+
+### Example 2: exchangeable and unstructured models
+
+  - Exchangeable.
+\begin{equation*}
+Z_1 = \begin{bmatrix}
+1 & 1 & 1\\ 
+1 & 1 & 1\\ 
+1 & 1 & 1
+\end{bmatrix} 
+\end{equation*}
+
+  - Unstructured
+\begin{equation*}
+Z_1 = \begin{bmatrix}
+0 & 1 & 0\\ 
+1 & 0 & 0\\ 
+0 & 0 & 0
+\end{bmatrix}, \quad 
+Z_2 = \begin{bmatrix}
+0 & 0 & 1\\ 
+0 & 0 & 0\\ 
+1 & 0 & 0
+\end{bmatrix}, \quad \text{and} \quad
+Z_3 = \begin{bmatrix}
+0 & 0 & 0\\ 
+0 & 0 & 1\\ 
+0 & 1 & 0
+\end{bmatrix}
+\end{equation*}
+
+### Example 3: conditional autoregressive models
+
+  - Specify the inverse of the covariance matrix 
+\begin{equation*}
+\label{CAR}
+\boldsymbol{\Omega}^{-1}(\tau,\rho) = \tau (\boldsymbol{D} - \rho \boldsymbol{W}),
+\end{equation*}
+where $\boldsymbol{W}$ is a neighbourhood matrix and $\boldsymbol{D}$ 
+is a diagonal matrix with the number of neighbours.
+  - Linear covariance models using the inverse covariance link function
+\begin{equation*}
+\boldsymbol{\Omega}^{-1}(\boldsymbol{\tau}) = \tau_0 \boldsymbol{D} + \tau_1 \boldsymbol{W},
+\end{equation*}
+where $\tau_0 = \tau$ and $\tau_1 = - \tau \rho$.
+  - $\boldsymbol{W}$ can describe temporal, spatial and spatial temporal neighborhoods.
+  
+### Example 4: genetic additive models
+
+  - Let $\boldsymbol{A}$ denote an additive genetic relatedness matrix.
+
+$$
+\boldsymbol{\Omega}(\boldsymbol{\tau}) = \tau_0 \boldsymbol{I} + \tau_1 \boldsymbol{A},
+$$
+where $\tau_0$ and $\tau_1$ denote the environment and genetic variance components,
+respectively. (See Bonat, 2017 for details.)
+
+---
+
+### Multivariate Covariance Generalized Linear Models
+
+  - Let $\boldsymbol{Y}_{N \times R} = \{\boldsymbol{Y}_1, \ldots, \boldsymbol{Y}_R\}$ be an outcome matrix.
+  - Let $\boldsymbol{M}_{N \times R} = \{\boldsymbol{\mu}_1, \ldots, \boldsymbol{\mu}_R\}$ be an expected value matrix.
+  - Let $\boldsymbol{\Sigma}_r = \mathrm{V}_r(\boldsymbol{\mu};p)^{\frac{1}{2}} \boldsymbol{\Omega}_r(\boldsymbol{\tau}) \mathrm{V}_r(\boldsymbol{\mu};p)^{\frac{1}{2}}$ be the covariance matrix within outcomes.
+  - Let $\boldsymbol{\Sigma}_b$ be the correlation matrix between outcomes.
+  - We define the McGLM by,
+
+\begin{eqnarray}
+\mathrm{E}(\boldsymbol{Y}) &=& \boldsymbol{M} = \{g_1^{-1}(\boldsymbol{X}_1 \boldsymbol{\beta}_1), \ldots, g_R^{-1}(\boldsymbol{X}_R \boldsymbol{\beta}_R)\} \nonumber    \\
+\mathrm{Var}(\boldsymbol{Y}) &=& \boldsymbol{C} = \boldsymbol{\Sigma}_R \overset{G} \otimes \boldsymbol{\Sigma}_b \nonumber
+\end{eqnarray} 
+where $\boldsymbol{\Sigma}_R \overset{G} \otimes \boldsymbol{\Sigma}_b = \mathrm{Bdiag}(\tilde{\boldsymbol{\Sigma}}_1, \ldots, \tilde{\boldsymbol{\Sigma}}_R)(\boldsymbol{\Sigma}_b \otimes \boldsymbol{I})\mathrm{Bdiag}(\tilde{\boldsymbol{\Sigma}}_1^T, \ldots, \tilde{\boldsymbol{\Sigma}}_R^T)$.
+
+  - Generalized Kronecker product proposed by Martinez-Beneito (2013).
+  - $\tilde{\boldsymbol{\Sigma}}_r$ is the lower triangular matrix of the Cholesky decomposition of $\boldsymbol{\Sigma}_r$.
+  - $\mathrm{Bdiag}$ denotes a block diagonal matrix.
+  - General linear model is easily obtained by taking
+    - Identity link functions.
+    - $\boldsymbol{X}_r = \boldsymbol{X}$ for all $r$.
+    - Constant variance function.
+    - $\boldsymbol{\Sigma}_r = \tau_{0r} \boldsymbol{I}$ for all $r$.
+
+--- 
+
+## Estimation and Inference
+
+  - Let $\mathcal{Y} = (\boldsymbol{Y}_1^T, \ldots, \boldsymbol{Y}_R^T)^T$ be the stacked vector $(NR \times 1)$ of the outcome matrix $\boldsymbol{Y}_{N \times R}$ by columns.
+  - Let $\mathcal{M} = (\boldsymbol{\mu}_1^T, \ldots, \boldsymbol{\mu}_R^T)^T$ be the stacked vector $(NR \times 1)$ of the expected value matrix $\boldsymbol{M}_{N \times R}$ by columns.
+  - The $\boldsymbol{C}$ matrix is symmetric and $NR \times NR$.
+  - Let $\boldsymbol{\beta} = (\boldsymbol{\beta}_1^T, \ldots, \boldsymbol{\beta}_R^T)^T$ be a vector $K \times 1$ of regression parameters.
+  - Let $\boldsymbol{\lambda} = (\rho_1, \ldots, \rho_{R(R-1)/2}, p_1, \ldots, p_R, \boldsymbol{\tau}_1^T, \ldots, \boldsymbol{\tau}_R^T)^T$ be a $Q \times 1$ vector of dispersion parameters.
+  - McGLM are specified by two sets of parameters $\boldsymbol{\theta} = (\boldsymbol{\beta}, \boldsymbol{\lambda})$.
+  - Quasi-score function for regression parameters.
+  - Pearson estimating function for dispersion parameters.
+
+### Estimating functions
+
+  - The quasi-score function is defined by,
+\begin{equation*}
+\psi_{\boldsymbol{\beta}}(\boldsymbol{\beta}, \boldsymbol{\lambda}) = \boldsymbol{D}^\top \boldsymbol{C}^{-1}(\mathcal{Y} - \mathcal{M})
+\end{equation*}
+where $\boldsymbol{D} = \nabla_{\boldsymbol{\beta}} \mathcal{M}$ is an $NR \times K$ matrix. 
+ - The Pearson estimating function is defined by,
+\begin{equation*}
+\label{Pearson}
+\psi_{\boldsymbol{\lambda}_i}( \boldsymbol{\beta}, \boldsymbol{\lambda}) = \mathrm{tr}(W_{\boldsymbol{\lambda}i}(\boldsymbol{r}^\top\boldsymbol{r} - \boldsymbol{C}))
+\end{equation*}
+where $W_{\boldsymbol{\lambda}i} = -\frac{\partial \boldsymbol{C}^{-1}}{\partial \boldsymbol{\lambda}_i}$ and $\boldsymbol{r} = (\mathcal{Y} - \mathcal{M})$.
+
+### Fitting algorithm
+ 
+ - Modified chaser
+\begin{eqnarray}
+\label{chaser}
+\boldsymbol{\beta}^{(i+1)} &=& \boldsymbol{\beta}^{(i)} - \mathrm{S}_{\boldsymbol{\beta}}^{-1} \psi_{\boldsymbol{\beta}}(\boldsymbol{\beta}^{(i)}, \boldsymbol{\lambda}^{(i)}) \nonumber \\
+\boldsymbol{\lambda}^{(i+1)} &=& \boldsymbol{\lambda}^{(i)} - \alpha \mathrm{S}_{\boldsymbol{\lambda}}^{-1} \psi_{\boldsymbol{\lambda}}(\boldsymbol{\beta}^{(i+1)}, \boldsymbol{\lambda}^{(i)}). \nonumber
+\end{eqnarray}
+
+- $\mathrm{S}_{\boldsymbol{\beta}}$ and $\mathrm{S}_{\boldsymbol{\lambda}}$ are the sensitivity
+matrices for $\boldsymbol{\beta}$ and $\boldsymbol{\lambda}$, respectively.
+
+### Godambe information matrix and asymptotic distribution
+
+  - Denote $\hat{\boldsymbol{\theta}} = (\hat{\boldsymbol{\beta}}, \hat{\boldsymbol{\lambda}})$ the estimating function estimator of $\boldsymbol{\theta}$.
+  - The asymptotic distribution of $\hat{\boldsymbol{\theta}}$ is given by
+\begin{equation*}
+\hat{\boldsymbol{\theta}} \sim \mathrm{N}_{K+Q}(\boldsymbol{\theta}, \mathrm{J}_{\boldsymbol{\theta}}^{-1})
+\end{equation*} 
+where $\mathrm{J}_{\boldsymbol{\theta}}^{-1}$ is the inverse of the Godambe information matrix,
+\begin{equation*}
+\mathrm{J}_{\boldsymbol{\theta}}^{-1} = \mathrm{S}_{\boldsymbol{\theta}}^{-1} \mathrm{V}_{\boldsymbol{\theta}} \mathrm{S}_{\boldsymbol{\theta}}^{-T},
+\end{equation*}
+where $\mathrm{S}_{\boldsymbol{\theta}}^{-T} = (\mathrm{S}_{\boldsymbol{\theta}}^{-1})^{T}$.
+ - $\mathrm{V}_{\boldsymbol{\theta}}$ is the variability matrix.
+ - For details, see Bonat and Jorgensen (2016) and Jorgensen and Knudsen (2004). 
+
+### Multivariate linear hypotheses tests
+
+  - Hypotheses 
+  
+  $$H_{0}: \boldsymbol{L}\boldsymbol{\beta} = \boldsymbol{c}\quad \text{vs} \quad H_{1}:\boldsymbol{L}\boldsymbol{\beta} \neq \boldsymbol{c}$$
+
+  - Wald statistics
+  
+  $$ 
+  W_{s} = (\boldsymbol{L}\boldsymbol{\beta})^{\top}(\boldsymbol{L}\mathrm{J}_{\boldsymbol{\beta}}^{-1}\boldsymbol{L})^{-1}(\boldsymbol{L}\boldsymbol{\beta}),$$
+where $\mathrm{J}_{\boldsymbol{\beta}} = \boldsymbol{D}^{\top} \boldsymbol{C}^{-1}\boldsymbol{D}.$
+
+  - $\boldsymbol{L}$ is a $JR \times K$ known matrix of constant.
+  - $J$ denotes the number of regression coefficients under testing. 
+  - Asymptotically $W_s$ has a $\chi^2$ distribution with $JR$ degrees of freedom.
+  - The Wald test corresponds to the Hotelling-Lawley statistics.
+  - $W_{s}$ is a straightforward generalization of the Hotelling-Lawley statistics to 
+  multivariate non-Gaussian data.
+
+--- 
+
+## Computational implementation in $\texttt{R}$
+
+  - Package $\texttt{mcglm}$ available at $\texttt{github}$ and CRAN.
+  - Instalation
+```{r, eval = FALSE}
+library(devtools)
+
+# From github
+install_github("wbonat/mcglm")
+
+# From CRAN 
+install.packages("mcglm")
+```
+
+  - Main function $\texttt{mcglm}$.
+
+```{r}
+require(mcglm)
+args(mcglm)
+```
+  - Link functions: $\texttt{logit}$, $\texttt{probit}$, $\texttt{cauchit}$,
+$\texttt{cloglog}$, $\texttt{loglog}$, $\texttt{identity}$, $\texttt{log}$,
+$\texttt{sqrt}$ and $\texttt{inverse}$.
+  - Variance functions: $\texttt{constant}$, $\texttt{tweedie}$, $\texttt{poisson_tweedie}$, 
+$\texttt{binomialP}$ and $\texttt{binomialPQ}$.
+  - Covariance link functions: $\texttt{identity}$, $\texttt{inverse}$ and
+$\texttt{exponential-matrix}$.
+
+### Linear covariance structures
+  
+| Functions    	| Description                                    	|
+|--------------	|------------------------------------------------	|
+| `mc_id()`    	| Identity matrix                                	|
+| `mc_ns()`    	| Unstructured model                             	|
+| `mc_dglm()`  	| Double generalized linear models.              	|
+| `mc_mixed()` 	| Linear mixed models (formula similar to lme4). 	|
+| `mc_ma()`    	| Moving average models of order p.              	|
+| `mc_rw()`    	| CAR models for times series.                   	|
+| `mc_car()`   	| CAR models for space data.                     	|
+| `mc_dist()`  	| Distance based models.                         	|
+| `mc_twin()`  	| ACE, ADE, AE, and CE models for twin data.     	|
+
+
+  - The users can use any list of symmetric matrices.
+  - Combine pre-specified structures with new ones.
+
+### Methods for `mcglm` objects
+
+| Functions    	| Description                                    	|
+|--------------	|------------------------------------------------	|
+| `print()`    	| Simple printed display of model features.      	|
+| `summary()`  	| Standard regression output.	                    |
+| `fitted()`  	| Fitted values for observed data.                |
+| `residuals()` | Pearson, raw and standardized residuals.        |
+| `coef()`    	| Coefficient estimates.                          |
+| `vcov()`    	| Variance-covariance matrix of coefficient estimates.|
+| `confint()`   | Confidence intervals.                           |
+| `anova()`  	  | Analysis of variance tables for fitted models.  |
+| `manova()`  	| MANOVA-like test. |
+| `plot()`  	  | Diagnostic plots of Pearson residuals and algorithm check.|
+
+### Extra features for `mcglm` objects
+
+| Functions    	          | Description                                    	|
+|--------------	          |------------------------------------------------	|
+| `gof()`    	            | Measures of goodness-of-fit.                    |
+| `mc_sic()`  	          | SIC for regression parameters.                  |
+| `mc_sic_covariance()`   | SIC for dispersion parameters.                  |
+| `mc_bias_correct_std()` | Bias-corrected std.                             |
+| `mc_robust_std()`    	  | Robust std.                                     |
+| `mc_conditional_test()` | Conditional hypotheses tests.                   |
+| `mc_compute_rho()`      | Compute autocorrelation estimates.              |
+| `mc_initial_values()`  	| Initial values for `mcglm`.                     |
+
+  - GOF's implemented: `plogLik`, `pAIC`, `pKLIC`, 
+`pBIC`, `ESS`, `GOSHO` and `RJC`.
+
+---
+
+### Example 1: `iris` data set
+
+```{r, message = FALSE}
+# Loading extra packages and functions
+require(mvtnorm)
+require(Matrix)
+require(mcglm)
+require(wzRfun)
+require(corrplot)
+source("../review/functions.R")
+```
+
+
+```{r, message = FALSE}
+data(iris)
+
+# Standard general linear model
+fit1 <- lm(cbind(Sepal.Length, Sepal.Width, Petal.Length, Petal.Width) ~ Species, data = iris)
+
+# General linear model in the mcglm package
+# Linear predictors
+linear_pred <- c(Sepal.Length ~ Species, Sepal.Width ~ Species, Petal.Length ~ Species, Petal.Width ~ Species)
+# Matrix linear predictor
+Z0 <- mc_id(iris)
+# Fitting
+fit2 <- mcglm(linear_pred = linear_pred, matrix_pred = list(Z0,Z0,Z0,Z0),
+              link = rep("identity",4), variance = rep("constant",4),
+              data = iris, control_algorithm = list(correct = FALSE))
+# Comparing lm() and mcglm() 
+logLik.mlm(fit1)
+plogLik(fit2)
+
+# Multivariate hypothesis test
+summary(manova(fit1), test = "Hotelling-Lawley")
+
+# Multivariate hypothesis test using mcglm
+manova.mcglm(fit2)
+```
+---
+
+### Example 2: `soya` data set
+
+```{r, message = FALSE}
+# Loading data set
+data(soybeanwp)
+soybeanwp <- soybeanwp[-74,]
+soybeanwp$potassium <- as.factor(soybeanwp$potassium)
+soybeanwp$water <- as.factor(soybeanwp$water)
+soybeanwp$block <- as.factor(soybeanwp$block)
+soybeanwp$Total <- soybeanwp$nvp + soybeanwp$nip
+soybeanwp$viab <- soybeanwp$nvp/soybeanwp$Total
+
+# Setting contrasts option to have orthogonal factor
+options(contrasts = rep ("contr.sum", 2))
+
+# Standard MANOVA ignoring count and binomial data
+fit1 <- manova(cbind(yield,w100,Kconc,tg,viab) ~ block + water*potassium, data = soybeanwp)
+
+# McGLM
+# Linear predictors
+form.yield <- yield ~ block + water * potassium
+form.w100 <- w100 ~ block + water * potassium
+form.K <- Kconc ~ block + water * potassium
+form.tg <- tg ~ block + water * potassium
+form.V <- viab ~ block + water * potassium
+
+# Matrix linear predictor
+Z0 <- mc_id(soybeanwp)
+
+# MANOVA fitted using mcglm
+fit.soya.lm <- mcglm(linear_pred = c(form.yield, form.w100, form.K, form.tg, form.V), 
+                   matrix_pred = list(Z0, Z0, Z0, Z0, Z0), 
+                   link = c("identity", "identity", "identity", "identity", "identity"), 
+                   variance = c("constant", "constant","constant", "constant", "constant"), 
+                   Ntrial = list(NULL, NULL, NULL, NULL, NULL), 
+                   data = soybeanwp, control_algorithm = list(correct = FALSE))
+
+# Fitting
+fit.soya <- mcglm(linear_pred = c(form.yield, form.w100, form.K, form.tg, form.V), 
+                  matrix_pred = list(Z0, Z0, Z0, Z0, Z0), 
+                  link = c("identity", "identity", "identity", "log", "logit"), 
+                  variance = c("constant", "constant","constant", "tweedie", "binomialP"), 
+                  Ntrial = list(NULL, NULL, NULL, NULL, soybeanwp$Total), 
+                  data = soybeanwp, 
+                  control_algorithm = list(correct = FALSE))
+
+# Comparison using pseudo-logLik
+logLik(fit1)
+plogLik(fit.soya.lm)
+plogLik(fit.soya)
+
+# MANOVA test
+summary(fit1, test = "Hotelling-Lawley")
+manova.mcglm(fit.soya.lm)
+
+# Multivariate hypothesis test
+manova.mcglm(fit.soya)
+
+# Correlation between response
+COR <- Matrix(0, 5, 5)
+COR[lower.tri(COR)] <- fit.soya$Covariance[1:10]
+COR <- matrix(forceSymmetric(COR, uplo = TRUE),5,5)
+colnames(COR) <- c("yield","w100","K","tg","V")
+rownames(COR) <- c("yield","w100","K","tg","V")
+corrplot(COR)
+
+```
+
+
+## Next topics
+
+  * Repeated measures design.
+  * Profile analysis.
+  * Analysis for the canonical variates .
+  * Multiple comparisons procedures.
+  * Checking model assumptions.
+  * Multiple design linear regression models.
+
+---
+
+<center>
+<p style='font-size: 80px;'>Thank you!</p>
+</center>
