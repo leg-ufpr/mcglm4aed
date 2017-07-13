@@ -7,22 +7,24 @@ library(mvtnorm)
 library(latticeExtra)
 
 #=======================================================================
-# Wilks' lambda - likelihood ratio test.
+# The Chi-square asymptotic of the multivariate tests.
 
 #-----------------------------------------------------------------------
-# Creating a function to run the simulation study.
+# Prototyping: creating a function to run the simulation study.
 
 # Simulation settings.
-m <- 3
-rept <- 4
-k <- 4
+m <- 3    # Number of responses.
+k <- 4    # Number of groups.
+rept <- 4 # Repetition of each group.
 
-simul <- function(m, k, rept, N = 1000) {
-    trt <- gl(4, rept)
-    mu <- rep(0, m)
+# Returns the chi-square statistic of each test.
+simul_chi <- function(m, k, rept, N = 1000) {
+    trt <- gl(k, rept)
     n <- length(trt)
+    # Means and covariances.
+    mu <- rep(0, m)
     Sigma <- 0.5 * (diag(m) + matrix(1, m, m))
-    # Sample of the statistic.
+    # Paired samples of the statistics.
     smp <- replicate(N, {
         Y <- rmvnorm(n = length(trt),
                      mean = mu,
@@ -33,19 +35,51 @@ simul <- function(m, k, rept, N = 1000) {
         # Sigma of the full model.
         m1 <- lm(Y ~ trt)
         S1 <- var(residuals(m1)) * (n - 1)/n
+        #------------------------------------
         # Wilks' statistic.
-        stat <- -n * log(det(S1)/det(S0))
-        return(stat)
+        wil <- -n * log(det(S1)/det(S0))
+        #------------------------------------
+        # Hotelling-Lawley's statistic.
+        hol <- n * sum(diag(solve(S1, S0 - S1)))
+        #------------------------------------
+        # Pillai's statistic.
+        pil <- n * sum(diag(solve(S0, S0 - S1)))
+        return(c(wil = wil, hol = hol, pil = pil))
     })
     return(smp)
 }
 
 # A sample of the Wilks' lambda statistic.
-smp <- simul(m = m, rept = rept, k = k)
+smp <- simul_chi(m = m, rept = rept, k = k)
 
-# Simulated distribution vs theoretical.
-plot(ecdf(smp))
-curve(pchisq(x, df = m * (k - 1)), add = TRUE, col = 2)
+# The function to display the legend.
+leg <- function() {
+    legend("right",
+           legend = c("Wilks", "Hotelling-Lawley", "Pillai"),
+           col = c(2, 4, 3),
+           lty = 1,
+           bty = "n")
+}
+
+# Empirical chi-square distribution vs theoretical.
+plot(ecdf(smp[1, ]), col = 2)
+lines(ecdf(smp[2, ]), col = 4)
+lines(ecdf(smp[3, ]), col = 3)
+curve(pchisq(x, df = m * (k - 1)), add = TRUE, col = 1)
+leg()
+
+# Get the p-values.
+pval <- apply(smp,
+              MARGIN = 1,
+              FUN = pchisq,
+              df = m * (k - 1))
+str(pval)
+
+plot(ecdf(pval[, 1]), col = 2, pch = NA)
+lines(ecdf(pval[, 2]), col = 4, cex = NA)
+lines(ecdf(pval[, 3]), col = 3, cex = NA)
+segments(0, 0, 1, 1, col = 1)
+leg()
 
 #-----------------------------------------------------------------------
 # Design settings for a small simulation study.
@@ -57,47 +91,132 @@ curve(pchisq(x, df = m * (k - 1)), add = TRUE, col = 2)
 k <- 4
 N <- 1000
 ds <- expand.grid(m = c(2, 5, 8),
-                  rept = c(3, 5, 10, 20))
+                  rept = c(5, 10, 20))
 
 # Simulation for each design setting case.
 res <- by(data = ds,
           INDICES = seq_len(nrow(ds)),
           FUN = function(case) {
               smp <- with(case,
-                          simul(m = m,
-                                rept = rept,
-                                k = k,
-                                N = N))
+                          simul_chi(m = m,
+                                    rept = rept,
+                                    k = k,
+                                    N = N))
+              test <- rownames(smp)
+              smp <- c(t(smp))
               data.frame(m = case$m,
                          rept = case$rept,
-                         smp = smp)
+                         test = rep(test, each = N),
+                         smp = smp,
+                         pval = pchisq(smp, case$m * (k - 1)))
           })
 
 # Stack to one data frame.
 res <- do.call(rbind, res)
 res$n <- res$rept * k
+res$test <- factor(res$test,
+                   levels = c("wil", "hol", "pil"),
+                   labels = c("Wilks", "Hotelling-Lawley", "Pillai"))
+res_chi <- res
+rm(res)
 
-# combineLimits(
-    useOuterStrips(
-        ecdfplot(~smp | factor(m) + factor(n),
-                 as.table = TRUE,
-                 # scales = list(x = "free"),
-                 xlab = "Wilks' lambda",
-                 ylab = "Empirical CDF",
-                 data = res),
-        strip = strip.custom(
-            var.name = "Responses",
-            strip.names = TRUE,
-            sep = " = "),
-        strip.left = strip.custom(
-            var.name = "Subjects",
-            strip.names = TRUE,
-            sep = " = ")) +
+useOuterStrips(
+    ecdfplot(~pval | factor(m) + factor(n),
+             as.table = TRUE,
+             groups = test,
+             auto.key = list(columns = 3,
+                             title = "Test",
+                             cex.title = 1.1),
+             xlab = "p-values of the Chisq-square statistic",
+             ylab = "Empirical CDF",
+             data = res_chi),
+    strip = strip.custom(
+        var.name = "Responses",
+        strip.names = TRUE,
+        sep = " = "),
+    strip.left = strip.custom(
+        var.name = "Subjects",
+        strip.names = TRUE,
+        sep = " = ")) +
     layer({
-        panel.curve(pchisq(x, df = ds$m[which.packet()[1]] * k),
-                    lty = 2)
+        panel.segments(0, 0, 1, 1, lty = 2, col = 1)
     })
-# )
 
-# Show the F approximation to the Wilks' lambda test.
+#=======================================================================
+# The F approximantion of each multivariate test.
+
+# Each test.
+tt <- c("Wilks", "Hotelling-Lawley", "Pillai", "Roy")
+# tt <- tt[-4]
+
+# Simulation of data under H_0 and computation of F statistics.
+simul_F <- function(m, k, rept, N = 1000) {
+    trt <- gl(k, rept)
+    mu <- rep(0, m)
+    n <- length(trt)
+    Sigma <- 0.5 * (diag(m) + matrix(1, m, m))
+    # Sample of the statistic.
+    smp <- replicate(N, {
+        Y <- rmvnorm(n = length(trt),
+                     mean = mu,
+                     sigma = Sigma)
+        m0 <- lm(Y ~ trt)
+        pvals <- sapply(tt,
+                        FUN = function(test) {
+                            # Extract the p-value.
+                            anova(m0, test = test)[2, 6]
+                        })
+        return(pvals)
+    })
+    return(smp)
+}
+
+simul_F(m = 3, k = 4, rept = 10, N = 20)
+
+# Simulation for each design setting case.
+res <- by(data = ds,
+          INDICES = seq_len(nrow(ds)),
+          FUN = function(case) {
+              smp <- with(case,
+                          simul_F(m = m,
+                                  rept = rept,
+                                  k = k,
+                                  N = N))
+              smp <- stack(as.data.frame(t(smp)))
+              cbind(data.frame(m = case$m,
+                               rept = case$rept),
+                    smp)
+          })
+
+# Stack to one data frame.
+res <- do.call(rbind, res)
+res$n <- res$rept * k
+names(res)[3:4] <- c("pval", "test")
+res$test <- factor(res$test, levels = tt)
+res_F <- res
+rm(res)
+
+useOuterStrips(
+    ecdfplot(~pval | factor(m) + factor(n),
+             groups = test,
+             auto.key = list(columns = 2,
+                             title = "Test",
+                             cex.title = 1.1),
+             as.table = TRUE,
+             xlab = "p-values of the F approximation",
+             ylab = "Empirical CDF",
+             subset = !is.na(pval),
+             data = res_F),
+    strip = strip.custom(
+        var.name = "Responses",
+        strip.names = TRUE,
+        sep = " = "),
+    strip.left = strip.custom(
+        var.name = "Subjects",
+        strip.names = TRUE,
+        sep = " = ")) +
+    layer({
+        panel.segments(0, 0, 1, 1, lty = 2, col = 1)
+    })
+
 #-----------------------------------------------------------------------
