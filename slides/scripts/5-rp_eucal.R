@@ -7,6 +7,7 @@ library(latticeExtra)
 library(car)
 library(corrplot)
 library(candisc)
+library(doBy)
 library(multcomp)
 
 #-----------------------------------------------------------------------
@@ -98,16 +99,78 @@ anova(m_full, test = "Pillai")
 anova(m_full, test = "Roy")
 
 #-----------------------------------------------------------------------
-#
+# Exploring linear hypothesis tests.
 
-# Apply linearHypothesis to all pairwise contrasts. Correct the pvalue
-# with bonferroni or another method of corrections. Focus on the
-# construction of the L matrix (means) and the K matrix (contrasts).
+L <- LSmatrix(m_full, effect = "manejo")
+grid <- attr(L, "grid")
+
+# Estimated means for each response.
+L %*% m_full[[1]]
+
+# A set of structured contrasts.
+rownames(L) <- grid$manejo
+rownames(L)
+
+# List with the planned contrasts.
+K <- list("SvsB"       = L[4, ] - colMeans(L[-4, ]),
+          "BSLvsBS+BL" = L[3, ] - colMeans(L[1:2, ]),
+          "BLvsBS"     = L[1, ] - L[2, ])
+
+# Test the first contrast.
+lh <- linearHypothesis(model = m_full,
+                       hypothesis.matrix = K[[1]],
+                       test = "Pillai")
+print(lh, SSP = TRUE)
+
+# Eval the planned contrasts serially.
+k <- lapply(K,
+            FUN = linearHypothesis,
+            model = m_full,
+            test = "Pillai")
+for (x in k) {
+    print(x, SSP = FALSE)
+}
+
+# All pairwise contrasts.
+A <- wzRfun::apc(L)
+A <- by(A, rownames(A), as.matrix)
+
+# Eval the contrasts serially.
+a <- lapply(A,
+            FUN = linearHypothesis,
+            model = m_full,
+            test = "Pillai")
+sapply(a,
+       FUN = function(x) {
+           print(x, SSP = FALSE)
+           invisible()
+       })
 
 #-----------------------------------------------------------------------
 
+# Contrast BSLvsBS+BL in 4 responses.
+linearHypothesis(model = m_full,
+                 hypothesis.matrix = K[[2]],
+                 test = "Pillai",
+                 P = diag(4))
+
+# Contrast BSLvsBS+BL in the third response (rp).
+linearHypothesis(model = m_full,
+                 hypothesis.matrix = K[[2]],
+                 test = "Pillai",
+                 P = cbind(c(0, 0, 1, 0)))
+
+# Contrast BSLvsBS+BL in the first two responses (umid0 and umid6).
+linearHypothesis(model = m_full,
+                 hypothesis.matrix = K[[2]],
+                 test = "Pillai",
+                 P = cbind(c(1, 0, 0, 0),
+                           c(0, 1, 0, 0)))
+
+#-----------------------------------------------------------------------
 # Which is the variable that most contribute to differentiate the
 # groups?
+
 cd <- candisc(m_full, term = "manejo")
 cd
 summary(cd)
