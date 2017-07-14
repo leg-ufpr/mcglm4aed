@@ -55,7 +55,7 @@ plogLik(mod3)
 
 # How to take into account the repeated measures structure -----------
 
-
+obj <- mod2
 
 
 

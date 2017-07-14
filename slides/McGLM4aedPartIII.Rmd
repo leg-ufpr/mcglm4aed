@@ -1,9 +1,8 @@
 ---
 title: Multivariate covariance generalized linear models for analysis of experimental
   data
-author: "Phd. Wagner Hugo Bonat &  Dr. Walmes Marques Zeviani"
+author: "Wagner Hugo Bonat  &  Walmes Marques Zeviani"
 date: "July 24-28 2017"
-#bibliography: config/ref.bib
 output:
   slidy_presentation:
     css: config/style.css
@@ -15,6 +14,7 @@ output:
     highlight: haddock
   beamer_presentation:
     highlight: haddock
+bibliography: config/ref.bib
 ---
 
 <!-- Não mexer aqui. -->
@@ -45,10 +45,10 @@ head(iris)
   - MANOVA can deal only with Gaussian data.
   - Homogeneity of variances and covariances.
   - Independent observations within response variables.
-  - What do we need ?
+  - What do we need?
     - Generalized linear models (GLM) to deal with non-Gaussian data.
     - Flexibility to deal with different types of dependence structures.
-    - Multivariate response variables possibly of mixed types.
+    - Multivariate response variables, possibly of mixed types.
     - Ideal approach---easy to specify, fit, interpret and teach.
 
 ---
@@ -57,19 +57,19 @@ head(iris)
 
   - Goal 1: Make GLM more flexible to deal with:
     - Non-negative highly right-skewed data and continuous data with 
-    probability mass at zero (Bonat and Kokonendji, 2017).
+    probability mass at zero [@Bonat:2017].
     - Under, equi, overdispersed, zero-inflated and heavy-tailed 
-    count data (Bonat et.al. 2017).
-    - Bounded data (Bonat et. al. 2017).
+    count data [@Bonat:2017a].
+    - Bounded data [@Bonat:2017b].
   - Goal 2: Extend GLM to cGLM to deal with:
-    - Mixed models (Pinheiro and Bates, 2000). 
-    - Repeated measures (Diggle et. al. 1994).
-    - Time series (Box and Jenkins, 1976).
-    - Spatial and space-time data (Cressie, 1993; Knorr-Held, 2000).
-    - Genetic and Twin data (Bonat, 2017; Wang et. al. 2011).
+    - Mixed models [@Bates:2015]. 
+    - Repeated measures [@Diggle:2002].
+    - Time series [@Box:1994].
+    - Spatial and space-time data [@Cressie:1999; @Cressie:2011].
+    - Genetic and Twin data [@Sorensen:2007].
   - Goal 3: Extend cGLM to McGLM to deal with:
-    - Multivariate response variables.
-    - Response variables of mixed types.
+    - Multivariate response variables [@Bonat:2016].
+    - Response variables of mixed types [@Bonat:2017c].
     - Identify the general linear model and MANOVA as special cases.
   - Goal 4: Extend multivariate hypotheses tests to non-Gaussian data.
   - Goal 5: Provide software implementation in $\texttt{R}$.
@@ -86,7 +86,7 @@ head(iris)
 \begin{eqnarray}
 \label{modelGLM}
 \mathrm{E}(\boldsymbol{Y}) &=& \boldsymbol{\mu} = g^{-1}(\boldsymbol{X} \boldsymbol{\beta})  \nonumber \\
-\mathrm{Var}(\boldsymbol{Y}) &=& \boldsymbol{\Sigma} = \mathrm{V}(\boldsymbol{\mu};p)^{\frac{1}{2}} ( \tau_0 \boldsymbol{I} ) \mathrm{V}(\boldsymbol{\mu};p)^{\frac{1}{2}}.
+\mathrm{Var}(\boldsymbol{Y}) &=& \boldsymbol{\Sigma} = \mathrm{V}(\boldsymbol{\mu};p)^{\frac{1}{2}} ( \tau_0 \boldsymbol{I} ) \mathrm{V}(\boldsymbol{\mu};p)^{\frac{1}{2}}. \quad \quad \quad    (1)
 \end{eqnarray}
 
   - $g$ is the link function.
@@ -103,18 +103,14 @@ head(iris)
 
   - Tweedie family (variance function), characterized by
 
-$$ \vartheta(\boldsymbol{\mu};p) = \mu^p$$ 
+$$ \vartheta(\boldsymbol{\mu};p) = \mu^p.$$ 
   
   - Gaussian ($p = 0$), gamma ($p = 2$) and inverse Gaussian ($p = 3$).
   - Deals with symmetric, skewed and zero-inflated continuous outcomes.
-  - Poisson-Tweedie variance function 
-  
-  $$ \vartheta(\boldsymbol{\mu};p) = \mu + \mu^p \exp \left \{(2-p)\Phi_p(\mu)\right \}.$$
- 
- - Poisson-Tweedie family (dispersion function), characterized by
+  - Poisson-Tweedie family (dispersion function), characterized by
 
 $$
-\vartheta(\boldsymbol{\mu};p) = \mu + \mu^p 
+\vartheta(\boldsymbol{\mu};p) = \mu + \mu^p.
 $$
   
   - Hermite ($p=0$), Neyman Type A ($p=1$), negative binomial ($p=2$).
@@ -178,7 +174,7 @@ where $h$ is a covariance link function (Pourahmadi, 2011).
   - It is easy to show that
 \begin{eqnarray}
 \mathrm{E}(\boldsymbol{Y}) &=& \boldsymbol{\mu} = \boldsymbol{X} \boldsymbol{\beta}  \nonumber \\
-\mathrm{Var}(\boldsymbol{Y}) &=& \boldsymbol{\Omega} = \tau_0 \boldsymbol{I} + \boldsymbol{U}\boldsymbol{D}\boldsymbol{U}^{\top} \nonumber
+\mathrm{Var}(\boldsymbol{Y}) &=& \boldsymbol{\Omega} = \tau_0 \boldsymbol{I} + \boldsymbol{U}\boldsymbol{D}\boldsymbol{U}^{\top}. \nonumber
 \end{eqnarray}
 - Furthermore,
 $$ \boldsymbol{U}\boldsymbol{D}\boldsymbol{U}^{\top} = \sum_{j \leq q}^k d_{jq} \boldsymbol{V}_{jq}$$
@@ -187,13 +183,13 @@ where $\boldsymbol{V}_{jj} = \boldsymbol{U_{\cdot j}} \boldsymbol{U_{\cdot j}}^{
 
 ### Example 2: exchangeable and unstructured models
 
-  - Exchangeable.
+  - Exchangeable
 \begin{equation*}
 Z_1 = \begin{bmatrix}
 1 & 1 & 1\\ 
 1 & 1 & 1\\ 
 1 & 1 & 1
-\end{bmatrix} 
+\end{bmatrix}. 
 \end{equation*}
 
   - Unstructured
@@ -207,12 +203,12 @@ Z_2 = \begin{bmatrix}
 0 & 0 & 1\\ 
 0 & 0 & 0\\ 
 1 & 0 & 0
-\end{bmatrix}, \quad \text{and} \quad
+\end{bmatrix} \quad \text{and} \quad
 Z_3 = \begin{bmatrix}
 0 & 0 & 0\\ 
 0 & 0 & 1\\ 
 0 & 1 & 0
-\end{bmatrix}
+\end{bmatrix}.
 \end{equation*}
 
 ### Example 3: conditional autoregressive models
@@ -239,7 +235,7 @@ $$
 \boldsymbol{\Omega}(\boldsymbol{\tau}) = \tau_0 \boldsymbol{I} + \tau_1 \boldsymbol{A},
 $$
 where $\tau_0$ and $\tau_1$ denote the environment and genetic variance components,
-respectively. (See Bonat, 2017 for details.)
+respectively. For details see @Bonat:2017c.
 
 ---
 
@@ -318,7 +314,7 @@ where $\mathrm{J}_{\boldsymbol{\theta}}^{-1}$ is the inverse of the Godambe info
 \end{equation*}
 where $\mathrm{S}_{\boldsymbol{\theta}}^{-T} = (\mathrm{S}_{\boldsymbol{\theta}}^{-1})^{T}$.
  - $\mathrm{V}_{\boldsymbol{\theta}}$ is the variability matrix.
- - For details, see Bonat and Jorgensen (2016) and Jorgensen and Knudsen (2004). 
+ - For details, see @Bonat:2016 and @Jorgensen:2004. 
 
 ### Multivariate linear hypotheses tests
 
@@ -335,7 +331,6 @@ where $\mathrm{J}_{\boldsymbol{\beta}} = \boldsymbol{D}^{\top} \boldsymbol{C}^{-
   - $\boldsymbol{L}$ is a $JR \times K$ known matrix of constant.
   - $J$ denotes the number of regression coefficients under testing. 
   - Asymptotically $W_s$ has a $\chi^2$ distribution with $JR$ degrees of freedom.
-  - The Wald test corresponds to the Hotelling-Lawley statistics.
   - $W_{s}$ is a straightforward generalization of the Hotelling-Lawley statistics to 
   multivariate non-Gaussian data.
 
@@ -364,7 +359,7 @@ args(mcglm)
   - Link functions: $\texttt{logit}$, $\texttt{probit}$, $\texttt{cauchit}$,
 $\texttt{cloglog}$, $\texttt{loglog}$, $\texttt{identity}$, $\texttt{log}$,
 $\texttt{sqrt}$ and $\texttt{inverse}$.
-  - Variance functions: $\texttt{constant}$, $\texttt{tweedie}$, $\texttt{poisson_tweedie}$, 
+  - Variance functions: $\texttt{constant}$, `tweedie`, `poisson_tweedie`, 
 $\texttt{binomialP}$ and $\texttt{binomialPQ}$.
   - Covariance link functions: $\texttt{identity}$, $\texttt{inverse}$ and
 $\texttt{exponential-matrix}$.
@@ -460,7 +455,7 @@ manova.mcglm(fit2)
 ```
 ---
 
-### Example 2: `soya` data set
+### Example 2: `soybeanwp` data set
 
 ```{r, message = FALSE}
 # Loading data set
@@ -528,15 +523,35 @@ corrplot(COR)
 
 ```
 
+---
 
-## Next topics
+## Discussion
 
-  * Repeated measures design.
-  * Profile analysis.
-  * Analysis for the canonical variates .
-  * Multiple comparisons procedures.
-  * Checking model assumptions.
-  * Multiple design linear regression models.
+  * Universal multivariate statistical modelling framework.
+  * Flexible class of models based on second-moment assumptions.
+  * General framework for estimation based on estimating function.
+  * Efficient algorithms for estimation.
+  * Asymptotic theory (Godambe Information).
+  * Multivariate hypotheses tests for non-Gaussian data.
+
+### Extensions
+
+  * Automatic covariate selection (Score Information Criterion-SIC).
+  * Automatic covariance selection.
+  * Measures of goodness-of-fit (Pseudo logLik, Pseudo AIC, Pseudo KLIC and ESS.)
+  * Simulation from McGLMs based on the NORTA algorithm.
+
+### Coming soon
+
+  * Residual analysis (improvements).
+  * Diagnostics (Leverage, DFBETA's and Cook's distance).
+  * Penalized estimating functions (high dimensional data and splines).,
+  * Prediction (time, space and space-time).
+  * Special module for Twin data analysis. (NordicTwin cancer project)
+  * Include parameter constraints to fit structural equation models (SEM). 
+  * Improve package documentation.
+  * Multivariate hypotheses tests based on the pseudo-likelihood and
+  score statistics.
 
 ---
 
