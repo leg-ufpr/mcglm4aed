@@ -18,3 +18,5 @@ Rplots.pdf
 *_files/
 cache/
 auto/
+_site/
+*.pdf
