@@ -1,0 +1,248 @@
+/* Corpo ------------------------------------ */
+
+:root{
+    --main-color: #1a5dab;
+    --tb-fg-caption-color: #515151;
+}
+
+body, td, caption {
+    font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
+    /* font-family: "Lato", sans-serif; */
+    background-color: white;
+    font-size: 16px;
+    text-align: none;
+}
+
+body {
+    margin: auto;
+}
+
+.h1, .h2, .h3, h1, h2, h3 {
+    margin-top: 30px;
+    margin-bottom: 20px;
+}
+
+/* Ambientes monoespaço --------------------- */
+
+tt, code, pre {
+    font-family: "Inconsolata", "Andale Mono", monospace;
+}
+
+pre code {
+    font-size: 14px;
+}
+
+code {
+    background-color: unset;
+}
+
+p code,
+table code {
+    padding: 0;
+    font-size: 80%;
+    background-color: transparent;
+}
+
+/* R input */
+pre, code {
+    /* border-radius: 3px; */
+    background-color: #EDEDED;
+    color: #333;
+}
+
+pre {
+    border: none;
+    border-radius: 3px;
+}
+
+/* Comments in gray italic */
+code > span.co {
+    color: #848484;
+    font-style: italic;
+}
+
+/* R output */
+pre:not([class]) code {
+    background-color: #D4D4D4;
+}
+
+pre:not([class]), code {
+    background-color: #D4D4D4;
+}
+
+/* Code folding ----------------------------- */
+
+div.sourceCode div.row div.col-md-12 {
+    width: calc(100% + 1.2em);
+    height: 0px;
+}
+
+/* Tabela ----------------------------------- */
+
+table.table {
+    /* font-size: 90%; */
+    border-collapse: unset;
+    border-spacing: 0px;
+    border-bottom: 1px solid #515151;
+    border-top: 1px solid #515151;
+}
+
+table.table tr.header th {
+    border-bottom: 1px solid #515151;
+}
+
+/* Tabela com o nome dos autores. */
+h4.author table {
+    border: none;
+    margin-top: 2em;
+    margin-bottom: 2em;
+}
+
+h4.author table tbody,
+h4.author table thead,
+h4.author table tr.header th,
+h4.author table tr {
+    border: none;
+    line-height: unset;
+    /* font-style: normal; */
+    font-weight: normal;
+}
+
+h4.author table td,
+h4.author table th {
+    border: none;
+    padding: 0 20px 0 20px;
+}
+
+h4.author table {
+    font-size: 120%;
+    width: auto;
+    margin: 2em auto 2em auto;
+}
+
+/* Figuras ---------------------------------- */
+
+img {
+    max-width: 100% !important;
+    display: block;
+    margin: auto;
+}
+
+/* Legendas ---------------------------------- */
+
+table.table caption,
+p.caption {
+    color: var(--tb-fg-caption-color);
+    text-align: left;
+}
+
+/* Parafrases ------------------------------- */
+
+blockquote {
+    font-size: 100%;
+    width: 66%;
+    margin-left: auto;
+    border: none;
+    display: block;
+    margin: auto;
+}
+
+blockquote p {
+    font-style: italic;
+    text-indent: 0em;
+}
+
+blockquote p:last-child {
+    text-indent: 0em;
+    text-align: right;
+    font-style: normal;
+    display: inherit;
+}
+
+/* Referências ------------------------------ */
+
+div.references p {
+    text-indent: -1em;
+    margin-left: 1em;
+    text-align: left;
+}
+
+/* Hiperlinks ------------------------------- */
+
+a {
+    color: var(--main-color);
+    text-decoration: none;
+}
+
+a:hover, a:focus {
+    color: var(--main-color);
+    text-decoration: underline;
+}
+
+/* Listas ----------------------------------- */
+
+ul:not([class]) li {
+    list-style: none;
+}
+
+ul:not([class]) li:before {
+    content: '\25B8';
+    margin-left: -1em;
+    position: absolute;
+}
+
+div.tocify ul li:before {
+    content: '';
+}
+
+ul.dropdown-menu li:before {
+    content: '';
+}
+
+/* Cabeçalho -------------------------------- */
+
+#header {
+    text-align: center;
+    margin: 20px 0px 20px 0px;
+}
+
+/* TOC -------------------------------------- */
+
+#TOC {
+    font-size: 15px;
+    margin: 0px 0px 20px 0px;
+}
+
+#TOC li {
+    /* list-style: outside none url; */
+    list-style: none;
+}
+
+#TOC li:before {
+    content: '';
+}
+
+.list-group-item.active,
+.list-group-item.active:focus,
+.list-group-item.active:hover {
+    background-color: var(--main-color);
+}
+
+.tocify-header {
+    text-indent: 0px;
+}
+
+.tocify-subheader {
+    text-indent: 0px !important;
+}
+
+.tocify-subheader .tocify-item {
+    font-size: 90% !important;
+    padding-left: 15px !important;
+}
+
+div.tocify-extend-page {
+	height: 10px !important;
+}
+
+/*------------------------------------------- */

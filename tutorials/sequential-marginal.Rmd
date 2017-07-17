@@ -1,0 +1,266 @@
+---
+title: "Sequential and Marginal Hypotheses Tests"
+author: |
+  | Wagner H. Bonat   | Walmes M. Zeviani |
+  |:-----------------:|:-----------------:|
+  | `wbonat@ufpr.br`  | `walmes@ufpr.br`  |
+date: >
+  63^a^ RBras & 17^o^ SEAGRO</br>
+  July 24--28, 2017</br>
+  UFLA, Lavras/MG
+---
+
+# Univariate linear models
+
+```{r}
+#-----------------------------------------------------------------------
+# A univariate linear model.
+
+rm(list = ls())
+
+# Using `mtcars` as toy data.
+# Model with numeric and categorical predictors.
+m0 <- lm(qsec ~ mpg + factor(gear) + hp, data = mtcars)
+
+# Vector with the estimated parameters.
+b <- cbind(coef(m0))
+b
+
+# Covariance matrix of the estimates.
+V <- vcov(m0)
+round(V, digits = 5)
+
+# Term labels.
+tl <- c(if (attr(terms(m0), "intercept")) "(Intercept)",
+        attr(terms(m0), "term.labels"))
+tl
+
+# Choleski of the Fisher information matrix (inverse of the covariance).
+G <- chol(solve(V))
+G
+```
+
+## Sequential F test
+
+```{r}
+#--------------------------------------------
+# Sequential F tests.
+
+Rb <- G %*% b
+Rb
+
+sF <- tapply(Rb,
+             INDEX = m0$assign,
+             FUN = function(x) {
+                 ndf <- length(x)
+                 fval <- crossprod(x)/ndf
+                 data.frame(nDF = ndf,
+                            `F value` = fval,
+                            check.names = FALSE)
+             })
+sF <- do.call(rbind, sF)
+rownames(sF) <- tl
+sF
+
+anova(m0)
+
+
+```
+
+## Marginal F test
+
+```{r}
+#--------------------------------------------
+# Marginal F tests.
+
+# Position with the same number are columns of the same term in the
+# design matrix.
+m0$assign
+
+# Split indices by terms
+a <- split(x = seq_along(m0$assign),
+           f = m0$assign)
+names(a) <- tl
+
+mF <- lapply(a,
+             FUN = function(i) {
+                 ndf <- length(i)
+                 QR <- qr(t(solve(G))[, i, drop = FALSE])
+                 x <- qr.qty(qr = QR, Rb)[1:ndf]
+                 fval <- sum(x^2)/ndf
+                 data.frame(nDF = ndf,
+                            `F value` = fval,
+                            check.names = FALSE)
+             })
+mF <- do.call(rbind, mF)
+mF
+
+drop1(m0, test = "F")
+```
+
+# Multivariate linear models
+
+```{r}
+#-----------------------------------------------------------------------
+# A multivariate linear model.
+
+rm(list = ls())
+
+# Full model.
+m_full <- lm(cbind(qsec, wt) ~ mpg + factor(gear) + hp,
+             data = mtcars)
+
+# Is this manova a sequential device of hypotheses tests?
+anova(m_full)
+
+# TODO: Calculate each Pillai for nested models in sequence.
+
+# Error SSP.
+S_full <- crossprod(residuals(m_full))
+S_full
+
+# Terms to be dropped out (reversed order).
+# tm <- rev(attr(terms(m_full), "term.labels"))
+tm <- attr(terms(m_full), "term.labels")
+tm
+```
+
+## Sequential tests by refitting
+
+```{r}
+#--------------------------------------------
+# Sequential tests.
+
+# Empty list to keep extra SPP and Pillai statistic.
+drops <- replicate(length(tm),
+                   list(S = NULL,
+                        Pillai = numeric(0)),
+                   simplify = FALSE)
+names(drops) <- tm
+
+# In the loop, the model m1 has one more term than the model m0.
+m1 <- m_full
+
+# ATTENTION: loop runs in the reversed order of the terms.
+for (i in rev(tm)) {
+    # Dropping one term out sequentially.
+    m0 <- update(m1,
+                 formula = as.formula(sprintf(". ~ . -%s", i)))
+    # Extra SSP matrix (difference in the error SSP between models).
+    drops[[i]]$S <- crossprod(residuals(m0)) -
+        crossprod(residuals(m1))
+    m1 <- m0
+    # Pillai statistic.
+    drops[[i]]$Pillai <-
+        sum(diag(drops[[i]]$S %*% solve(drops[[i]]$S + S_full)))
+}
+
+cbind(Pillai = sapply(drops, "[[", "Pillai"))
+anova(m_full, test = "Pillai")
+```
+
+## Sequential tests by QR
+
+```{r}
+#-----------------------------------------------------------------------
+# How get the same results without refitting the model?
+
+# QR decomposition of the design matrix X.
+QR <- m_full$qr
+R <- qr.R(QR)
+Q <- qr.Q(QR)
+
+# Matrix of responses.
+y <- as.matrix(m_full$model[1])
+colnames(y) <- sub(x = colnames(y),
+                   pattern = "^[^.]*\\.",
+                   replacement = "")
+dim(y)
+head(y)
+
+# Error SSP: y' [I - QQ'] y.
+S_full
+t(y) %*% (diag(nrow(y)) - Q %*% t(Q)) %*% y
+
+# Model SSP: y' [QQ'] y.
+crossprod(fitted(m_full))
+t(y) %*% (Q %*% t(Q)) %*% y
+
+# IMPORTANT: Columns of Q are ortogonal.
+a <- split(x = seq_along(m_full$assign),
+           f = m_full$assign)
+tl <- c(if (attr(terms(m_full), "intercept")) "(Intercept)",
+        attr(terms(m_full), "term.labels"))
+names(a) <- tl
+
+pil <- sapply(a,
+              FUN = function(i) {
+                  # Projection matrix.
+                  QQl <- Q[, i] %*% t(Q[, i])
+                  # Extra SSP.
+                  S <- t(y) %*% QQl %*% y
+                  # Pillai statistic.
+                  sum(diag(S %*% solve(S + S_full)))
+              })
+cbind(Pillai = pil)
+anova(m_full)
+```
+
+## Marginal tests by Wald
+
+```{r}
+#-----------------------------------------------------------------------
+# How get the Extra SSP matrix using a Wald construction (Mahalanobis
+# like distance)?
+
+# Design matrix.
+X <- model.matrix(m_full)
+XlX <- crossprod(X) # X'X
+XlXi <- solve(XlX)  # (X'X)^{-1}
+
+# Estimated parameters.
+B <- coef(m_full)
+B
+
+# L matricex.
+# For `mpg`.
+# L <- rbind(c(0, 1, 0, 0, 1))
+# For `gear`.
+# L <- rbind(c(0, 0, 1, 0, 0),
+#            c(0, 0, 0, 1, 0))
+# For `hp`.
+# L <- rbind(c(0, 0, 0, 0, 1))
+
+# Construction of th L matrix to test each model term.
+L <- by(seq_along(m_full$assign),
+        m_full$assign,
+        FUN = function(i) {
+            L <- matrix(0,
+                        nrow = length(i),
+                        ncol = length(m_full$assign))
+            L[, i] <- diag(i * 0 + 1)
+            return(L)
+        })
+names(L) <- tl
+L
+
+# Marginal hypotheses test using Pillai statistic.
+pil <- sapply(L,
+              FUN = function(Li) {
+                  LB <- Li %*% B
+                  v <- solve(Li %*% XlXi %*% t(Li))
+                  S_extr <- t(LB) %*% v %*% LB
+                  sum(diag(S_extr %*% solve(S_extr + S_full)))
+              })
+cbind(Pillai = pil)
+car::Anova(m_full, type = 3)
+```
+
+# Session information
+
+```{r}
+# devtools::session_info()
+Sys.time()
+cbind(Sys.info())
+sessionInfo()
+```
