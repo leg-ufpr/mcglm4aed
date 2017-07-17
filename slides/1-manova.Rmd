@@ -9,16 +9,6 @@ date: >
   63^a^ RBras & 17^o^ SEAGRO</br>
   July 24--28, 2017</br>
   UFLA, Lavras/MG
-output:
-  slidy_presentation:
-# To display math offline.
-#   mathjax: local
-#   self_contained: false
-    css: config/style.css
-    footer: McGLMs for experimental data, Bonat & Zeviani (2017)
-    highlight: tango
-    includes:
-      in_header: config/MathJax.html
 ---
 
 # Motivational data sets

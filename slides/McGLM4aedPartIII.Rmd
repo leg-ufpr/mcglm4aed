@@ -3,34 +3,8 @@ title: Multivariate covariance generalized linear models for analysis of experim
   data
 author: "Wagner Hugo Bonat  &  Walmes Marques Zeviani"
 date: "July 24-28 2017"
-output:
-  slidy_presentation:
-    css: config/style.css
-    footer: McGLMs for experimental data , Bonat & Zeviani (2017)
-    highlight: haddock
-    includes:
-      in_header: config/MathJax.html
-  ioslides_presentation:
-    highlight: haddock
-  beamer_presentation:
-    highlight: haddock
 bibliography: config/ref.bib
 ---
-
-<!-- Não mexer aqui. -->
-<style type="text/css">
-body {
-    font-family: "Palatino Linotype", "Book Antiqua", Palatino, serif;
-}
-img {
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.75);
-}
-tt, code, pre {
-    font-family: "Ubuntu Mono", "Inconsolata", "Andale Mono", monospace;
-}
-</style>
-<!-- Não mexer aqui. -->
-
 
 # Multivariate covariance generalized linear models for analysis of experimental data
 
