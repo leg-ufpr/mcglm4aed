@@ -1,3 +1,23 @@
+---
+title: "Simulation study"
+author: |
+  | Wagner H. Bonat   | Walmes M. Zeviani |
+  |:-----------------:|:-----------------:|
+  | `wbonat@ufpr.br`  | `walmes@ufpr.br`  |
+date: >
+  63^a^ RBras & 17^o^ SEAGRO</br>
+  July 24--28, 2017</br>
+  UFLA, Lavras/MG
+---
+
+# The $\chi^2$ asymptotics
+
+## Function prototyping
+
+```{r, include = FALSE}
+source("../slides/config/_setup.R")
+```
+```{r}
 #-----------------------------------------------------------------------
 # Packages.
 
@@ -6,7 +26,7 @@ rm(list = ls())
 library(mvtnorm)
 library(latticeExtra)
 
-#=======================================================================
+#-----------------------------------------------------------------------
 # The Chi-square asymptotic of the multivariate tests.
 
 #-----------------------------------------------------------------------
@@ -53,8 +73,8 @@ simul_chi <- function(m, k, rept, N = 1000) {
 smp <- simul_chi(m = m, rept = rept, k = k)
 
 # The function to display the legend.
-leg <- function() {
-    legend("right",
+leg <- function(...) {
+    legend(...,
            legend = c("Wilks", "Hotelling-Lawley", "Pillai"),
            col = c(2, 4, 3),
            lty = 1,
@@ -62,11 +82,14 @@ leg <- function() {
 }
 
 # Empirical chi-square distribution vs theoretical.
-plot(ecdf(smp[1, ]), col = 2)
+plot(ecdf(smp[1, ]), col = 2,
+     xlab = expression(X^{2} ~ "statistic"),
+     ylab = "Empirical CDF",
+     main = NULL)
 lines(ecdf(smp[2, ]), col = 4)
 lines(ecdf(smp[3, ]), col = 3)
 curve(pchisq(x, df = m * (k - 1)), add = TRUE, col = 1)
-leg()
+leg("right")
 
 # Get the p-values.
 pval <- apply(smp,
@@ -75,12 +98,21 @@ pval <- apply(smp,
               df = m * (k - 1))
 str(pval)
 
-plot(ecdf(pval[, 1]), col = 2, pch = NA)
+plot(ecdf(pval[, 1]),
+     xlab = expression("p-values for the" ~ X^{2} ~ "statistic"),
+     ylab = "Empirical CDF",
+     col = 2,
+     pch = NA,
+     main = NULL)
 lines(ecdf(pval[, 2]), col = 4, cex = NA)
 lines(ecdf(pval[, 3]), col = 3, cex = NA)
 segments(0, 0, 1, 1, col = 1)
-leg()
+leg("left")
+```
 
+## Running the simulation study
+
+```{r}
 #-----------------------------------------------------------------------
 # Design settings for a small simulation study.
 
@@ -124,10 +156,11 @@ useOuterStrips(
     ecdfplot(~pval | factor(m) + factor(n),
              as.table = TRUE,
              groups = test,
-             auto.key = list(columns = 3,
+             auto.key = list(columns = 2,
                              title = "Test",
                              cex.title = 1.1),
-             xlab = "p-values of the Chisq-square statistic",
+             xlab = expression("p-values for the" ~
+                                   X^{2} ~ "statistic"),
              ylab = "Empirical CDF",
              data = res_chi),
     strip = strip.custom(
@@ -141,8 +174,14 @@ useOuterStrips(
     layer({
         panel.segments(0, 0, 1, 1, lty = 2, col = 1)
     })
+```
 
-#=======================================================================
+# The F approximation
+
+## Running the simulation study
+
+```{r}
+#-----------------------------------------------------------------------
 # The F approximantion of each multivariate test.
 
 # Each test.
@@ -203,7 +242,8 @@ useOuterStrips(
                              title = "Test",
                              cex.title = 1.1),
              as.table = TRUE,
-             xlab = "p-values of the F approximation",
+             xlab = expression("p-values for the" ~
+                                   italic(F) ~ "statistic"),
              ylab = "Empirical CDF",
              subset = !is.na(pval),
              data = res_F),
@@ -220,3 +260,13 @@ useOuterStrips(
     })
 
 #-----------------------------------------------------------------------
+```
+
+# Session information
+
+```{r}
+# devtools::session_info()
+Sys.time()
+cbind(Sys.info())
+sessionInfo()
+```
