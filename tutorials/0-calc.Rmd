@@ -1,3 +1,21 @@
+---
+title: "MANOVA tests calculation"
+author: |
+  | Wagner H. Bonat   | Walmes M. Zeviani |
+  |:-----------------:|:-----------------:|
+  | `wbonat@ufpr.br`  | `walmes@ufpr.br`  |
+date: >
+  63^a^ RBras & 17^o^ SEAGRO</br>
+  July 24--28, 2017</br>
+  UFLA, Lavras/MG
+---
+
+# Fitting the MANOVA model
+
+```{r, include = FALSE}
+source("../slides/config/_setup.R")
+```
+```{r}
 #-----------------------------------------------------------------------
 # Packages.
 
@@ -16,9 +34,15 @@ da <- data.frame(trt = gl(n = 3,
 str(da)
 
 # ATTENTION: This is a toy example, small dataset easy to handle.
-xyplot(y1 ~ y2, groups = trt, data = da)
+xyplot(y2 ~ y1,
+       groups = trt,
+       auto.key = list(columns = 3,
+                       title = "Treatments",
+                       cex.title = 1),
+       data = da,
+       grid = TRUE)
 
-# Fitting the manova model.
+# Fitting the manova model (full model).
 m_full <- lm(cbind(y1, y2) ~ trt, data = da)
 
 # Separated univariate models.
@@ -38,7 +62,11 @@ var(residuals(m_full))
 
 # Null model.
 m_null <- update(m_full, . ~ 1)
+```
 
+# Calculating the statistics of the four MANOVA tests
+
+```{r}
 #-----------------------------------------------------------------------
 # Doing the math.
 
@@ -69,7 +97,11 @@ anova(m_full, test = "Hotelling-Lawley")
 # Pillai.
 sum(diag(E_extr %*% solve(E_extr + E_full)))
 anova(m_full, test = "Pillai")
+```
 
+# A minimal of matrix algebra
+
+```{r}
 #-----------------------------------------------------------------------
 # Calculating using matricial algebra.
 
@@ -136,4 +168,17 @@ anova(m_full, test = "Hotelling-Lawley")
 sum(diag(E_extr %*% solve(E_extr + E_full)))
 anova(m_full, test = "Pillai")
 
+# ATTENTION: models with more than one term, a QR decomposition of the X
+# design matrix can be used.
+
 #-----------------------------------------------------------------------
+```
+
+# Session information
+
+```{r}
+# devtools::session_info()
+Sys.time()
+cbind(Sys.info())
+sessionInfo()
+```
