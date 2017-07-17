@@ -1,25 +1,60 @@
+---
+title: "Soil chemical variables in samples on a *Tectona grandis* plantation"
+author: |
+  | Wagner H. Bonat   | Walmes M. Zeviani |
+  |:-----------------:|:-----------------:|
+  | `wbonat@ufpr.br`  | `walmes@ufpr.br`  |
+date: >
+  63^a^ RBras & 17^o^ SEAGRO</br>
+  July 24--28, 2017</br>
+  UFLA, Lavras/MG
+---
+
+```{r, include = FALSE}
+source("../slides/config/_setup.R")
+```
+
+# Data description and objectives
+
+  * TODO
+  * TODO
+
+# Analysis with the multivariate linear model (MLM)
+
+## Loading the dataset
+
+```{r, message = FALSE}
 #-----------------------------------------------------------------------
 # Packages.
 
 library(latticeExtra)
 library(car)
 library(reshape2)
-source("../config/_setup.R")
-
+library(corrplot)
+library(grid)
+library(gridExtra)
+```
+```{r, eval = FALSE}
 #-----------------------------------------------------------------------
 # Getting the dataset.
 
 # Online documentation of the EACS::teca_qui dataset.
 u <- "http://leg.ufpr.br/~walmes/pacotes/EACS/reference/teca_qui.html"
 browseURL(u)
-
+```
+```{r}
 csv <- "https://raw.githubusercontent.com/walmes/EACS/master/data-raw/teca_qui.csv"
 teca <- read.csv2(file = csv, dec = ".")
 str(teca)
 
 teca$cam <- factor(teca$cam, labels = 1:3)
+```
 
+## Exploratory data analysis
+
+```{r}
 #-----------------------------------------------------------------------
+# Graphical exploratory analysis.
 
 # The cations.
 v <- c("k", "ca", "mg")
@@ -43,13 +78,15 @@ scatterplotMatrix(~log(k) + log(ca) + log(mg + 0.1) | cam,
                   by.groups = TRUE,
                   diagonal = "qqplot")
 
+# Transformed copies of the variables.
 teca <- transform(teca,
                   lk = log(k),
                   lca = log(ca),
                   lmg = log(mg + 0.1))
 
-# Transformed variables.
+# Names of the transformed variables.
 v <- tail(names(teca), n = 3)
+v
 
 #-----------------------------------------------------------------------
 # Repeated measures design.
@@ -66,6 +103,10 @@ str(tecal)
 
 bwplot(value ~ cam | res,
        pch = "|",
+       # scales = list(y = list(relation = "free")),
+       layout = c(NA, 1),
+       xlab = "Soil layer",
+       ylab = "Observed values in the transformed scale",
        data = tecal) +
     layer(panel.xyplot(x = x,
                        y = y,
@@ -78,21 +119,36 @@ tecal$res.cam <- with(tecal, paste(res, cam, sep = "."))
 # Wide format.
 tecaw <- dcast(data = tecal,
                formula = loc ~ res.cam,
-               value = "value")
-str(tecaw)
+               value = "value",
+               stringsAsFactors = FALSE)
 
+# Presented order of the responses.
+ord <- c(t(outer(Y = levels(tecal$cam),
+                 X = v,
+                 FUN = paste,
+                 sep = ".")))
+
+tecaw <- tecaw[, c("loc", ord)]
+str(tecaw)
+```
+
+## Repeated measures analysis
+
+```{r}
 #-----------------------------------------------------------------------
 # Repeated measures analysis.
 
 dput(names(tecaw)[-1])
 
+# Multivariate linear model for 9 responses.
 m0 <- lm(as.matrix(tecaw[, 2:10]) ~ 1)
 m0
 
-summary(m0)
-summary.aov(m0)
+# summary(m0)
+# summary.aov(m0)
 anova(m0)
 
+# Extract the raw residuals.
 r <- residuals(m0)
 
 # Checking the models assumptions on the residuals.
@@ -103,134 +159,363 @@ scatterplotMatrix(r,
                   ellipse = TRUE,
                   diagonal = "qqplot")
 
+corrplot(cor(r),
+         type = "upper",
+         tl.pos = "d",
+         outline = TRUE,
+         method = "ellipse")
+
 # Inner factors data design.
-idata <- expand.grid(res = levels(tecal$res),
-                     cam = levels(tecal$cam))
+# DANGER this order changes de SS.
+idata <- expand.grid(cam = levels(tecal$cam),
+                     res = v,
+                     KEEP.OUT.ATTRS = FALSE)
+str(idata)
 
 Anova(m0,
       idata = idata,
       idesign = ~res * cam)
+```
 
-# TODO How interpret these results? The difference in means among soil
-# layers depends on the cation?
+## Testing linear hypotheses on the responses
 
-# How the calculations is done? How construct the L matrix to test the
-# hypothesis?
+```{r}
+#-----------------------------------------------------------------------
+
+# Regression parameters.
+B <- coef(m0)
+colnames(B)
+
+# The L matrix is only a scalar.
+L <- matrix(1, nrow = 1, ncol = 1)
+
+# Check the orders.
+cbind(idata, res.cam = cbind(colnames(B)))
+
+# To test effect of responses.
+M_res <- cbind(c(-1, -1, -1, -1, -1, -1, 2, 2, 2),
+               c(-1, -1, -1,  1,  1,  1, 0, 0, 0))
+
+linearHypothesis(m0,
+                 test = "Pillai",
+                 hypothesis.matrix = L,
+                 P = M_res)
+
+# To test effect of soil layer.
+M_cam <- cbind(c(-1, -1, 2, -1, -1, 2, -1, -1, 2),
+               c(-1,  1, 0, -1,  1, 0, -1,  1, 0))
+
+linearHypothesis(m0,
+                 test = "Pillai",
+                 hypothesis.matrix = L,
+                 P = M_cam)
+
+# GOOD: To easy get the M matrices, creates a model matrix.
+M <- model.matrix(~res * cam,
+                  data = idata,
+                  contrasts = list(res = contr.sum,
+                                   cam = contr.sum))
+a <- attr(M, "assign")
+
+# This design matrix has all the slices needed.
+M
+
+# ATTENTION: The order or lines in the `idesign` and in the `B`
+# parameter matrix must match.
+
+linearHypothesis(m0,
+                 test = "Pillai",
+                 hypothesis.matrix = L,
+                 P = M[, a == 3])
+```
+
+## An univariate specification
+
+```{r}
+#-----------------------------------------------------------------------
+# The univariate regression model assumes independent observations
+# inside each location (a strong assumption in this case).
 
 an0 <- lm(value ~ res * cam, data = tecal)
 anova(an0)
 
+# The point estimates for means are the same.
+doBy::LSmeans(an0, effect = c("cam", "res"))
+cbind(c(coef(m0)))
+```
+
+# Analysis with the McGLM
+
+## Package instalation from GitHub
+
+```{r, eval = FALSE}
+# Installing the package from the github repository.
+devtools::install_github("wbonat/mcglm", ref = "devel")
+```
+```{r}
+# Load the package.
+library(mcglm)
+# packageVersion("mcglm")
+
+# Sort the lines per subject (`loc`) followed by `cam`.
+teca <- plyr::arrange(teca, loc, cam)
+
+# Keep only the variables that will be used.
+teca <- teca[, c(1, 2, 16, 17, 18)]
+str(teca)
+
+# Head and tail of the data.frame.
+head(teca)
+tail(teca)
+```
+
+## Covariance structures for the repeated measures
+
+```{r}
 #-----------------------------------------------------------------------
-install_github("wbonat/mcglm", ref = "devel")
-require(mcglm)
+# Covariance structures for the inner subject factor `cam`.
 
-# Subset
-data <- teca[,c(1,2,16,17,18)]
-data = data[order(data$cam),]
-data = data[order(data$loc),]
-data$cam <- as.factor(data$cam)
+# Independent covariance structure.
+Z0 <- mc_id(teca)
+length(Z0)
 
-# Linear predictors
-form.lk <- lk ~ cam
-form.lca <- lca ~ cam
-form.lmg <- lmg ~ cam
+# Unstructured model for covariance among cam.
+Z_ns <- mc_ns(teca, id = "loc")
+length(Z_ns)
 
-# Matrix linear predictors
-Z0 <- mc_id(data)
+# Moving average first order structure.
+Z_ma1 <- mc_ma(id = "loc",
+               time = "cam",
+               data = teca,
+               order = 1)
+length(Z_ma1)
 
-# Unstructured model for covariance between cam
-Z_ns <- mc_ns(data, id = "loc")
-
-# Moving average first order
-Z_ma1 <- mc_ma(id = "loc", time = "cam", data = data, order = 1)
-
-# Distance based
-Z_dist <- mc_dist(id = "loc", time = "cam", data = data, 
+# Distance based covariance structure.
+Z_dist <- mc_dist(id = "loc",
+                  time = "cam",
+                  data = teca,
                   method = "euclidean")
+length(Z_dist)
 
-# Random walk
-Z_rw <- mc_rw(id = "loc", time = "cam", data = data, order = 1, 
+# Random walk covariance structure.
+Z_rw <- mc_rw(id = "loc",
+              time = "cam",
+              data = teca,
+              order = 1,
               proper = TRUE)
+length(Z_rw)
 
-# Fitting
-# Standard MANOVA
-fit1 <- mcglm(linear_pred = c(form.lk, form.lca, form.lmg), 
-              matrix_pred = list(Z0,Z0,Z0), data = data)
+#-----------------------------------------------------------------------
+# The covariance structures.
 
-# MANOVA for all response
+# display.brewer.all()
+colr <- brewer.pal(9, "GnBu")
+colr <- colorRampPalette(colr, space = "rgb")
+
+i <- 1:9
+j <- i[i %% 3 == 0][-1] - 2.5
+myplot <- function(m, ...) {
+    levelplot(m, col.regions = colr, ...) +
+        layer(panel.abline(v = j, h = j))
+}
+```
+
+```{r, fig.height = 7 * 3/2}
+grid.arrange(myplot(as.matrix(Z0[[1]])[i, i],
+                    main = "Independent"),
+             myplot(as.matrix(Z_ns[[1]] +
+                              0.5 * Z_ns[[2]] +
+                              0.75 * Z_ns[[3]])[i, i],
+                    main = "Unstructured"),
+             myplot(as.matrix(Z_ma1[[1]])[i, i],
+                    main = "First order moving average"),
+             myplot(as.matrix(Z_dist[[1]])[i, i],
+                    main = "Euclidian distance"),
+             myplot(as.matrix(Z_rw[[1]] +
+                              0.5 * Z_rw[[2]])[i, i],
+                    main = "Random walk"),
+             ncol = 2)
+```
+
+## Fitting several models
+
+```{r}
+#-----------------------------------------------------------------------
+# Fitting several competing models.
+
+# Linear predictors (the same RHS for all responses).
+form <- list(lk ~ cam,
+             lca ~ cam,
+             lmg ~ cam)
+
+# form00 <- c( lk.1 ~ 1,  lk.2 ~ 1,  lk.3 ~ 1,
+#             lca.1 ~ 1, lca.2 ~ 1, lca.3 ~ 1,
+#             lmg.1 ~ 1, lmg.2 ~ 1, lmg.3 ~ 1)
+
+# To easy create a list of formulas.
+form00 <- sapply(sprintf("%s ~ 1",
+                         names(tecaw)[-1]),
+                 FUN = as.formula)
+
+# Independent subjects covariance structure.
 Z00 <- mc_id(tecaw)
-linear_pred <- c(lca.1 ~ 1, lca.2 ~ 1, lca.3 ~ 1, 
-                 lk.1 ~ 1, lk.2 ~ 1, lk.3 ~ 1,
-                 lmg.1 ~ 1, lmg.2 ~ 1, lmg.3 ~ 1)
 
-fit1.1 <- mcglm(linear_pred = linear_pred, 
-                matrix_pred = list(Z00,Z00,Z00,Z00,Z00,Z00,Z00,Z00,Z00),
-                data = tecaw)
+# MANOVA for all responses (wide format, subject is a single line).
+fit00 <- mcglm(linear_pred = form00,
+               matrix_pred = replicate(length(form00),
+                                       Z00,
+                                       simplify = FALSE),
+               data = tecaw)
 
-# MANOVA + repeated measures using unstructured matrix
-fit2 <- mcglm(linear_pred = c(form.lk, form.lca, form.lmg),
-              matrix_pred = list(c(Z0,Z_ns), c(Z0,Z_ns), c(Z0,Z_ns)),
-              control_algorithm = list(tunning = 0.9, max_iter = 100),
-              data = data)
+# Standard MANOVA (ignores the correlation among soil layers).
+fit1 <- mcglm(linear_pred = form,
+              matrix_pred = list(Z0, Z0, Z0),
+              data = teca)
 
-# MANOVA + repeated measures using moving average first order
-fit3 <- mcglm(linear_pred = c(form.lk, form.lca, form.lmg),
-              matrix_pred = list(c(Z0,Z_ma1), c(Z0,Z_ma1), c(Z0,Z_ma1)),
+# MANOVA + repeated measures using unstructured matrix.
+fit2 <- mcglm(linear_pred = form,
+              matrix_pred = list(c(Z0, Z_ns),
+                                 c(Z0, Z_ns),
+                                 c(Z0, Z_ns)),
+              control_algorithm = list(tunning = 0.9,
+                                       max_iter = 100),
+              data = teca)
+
+# MANOVA + repeated measures using moving average first order.
+fit3 <- mcglm(linear_pred = form,
+              matrix_pred = list(c(Z0, Z_ma1),
+                                 c(Z0, Z_ma1),
+                                 c(Z0, Z_ma1)),
               control_algorithm = list(tunning = 0.8),
-              data = data)
+              data = teca)
 
-# MANOVA + repeated measures using distance based
-fit4 <- mcglm(linear_pred = c(form.lk, form.lca, form.lmg),
-              matrix_pred = list(c(Z0,Z_dist), c(Z0,Z_dist), c(Z0,Z_dist)),
+# MANOVA + repeated measures using distance based.
+fit4 <- mcglm(linear_pred = form,
+              matrix_pred = list(c(Z0, Z_dist),
+                                 c(Z0, Z_dist),
+                                 c(Z0, Z_dist)),
               control_algorithm = list(tunning = 0.8),
-              data = data)
+              data = teca)
 
-# MANOVA + repeated measures using distance based + expm covariance link function
-fit5 <- mcglm(linear_pred = c(form.lk, form.lca, form.lmg),
-              matrix_pred = list(c(Z0,Z_dist), c(Z0,Z_dist), c(Z0,Z_dist)),
-              covariance = c("expm","expm","expm"),
+# MANOVA + repeated measures using distance based + expm covariance link
+# function.
+fit5 <- mcglm(linear_pred = form,
+              matrix_pred = list(c(Z0, Z_dist),
+                                 c(Z0, Z_dist),
+                                 c(Z0, Z_dist)),
+              covariance = c("expm",
+                             "expm",
+                             "expm"),
               control_algorithm = list(tunning = 0.8),
-              data = data)
+              data = teca)
 
-# MANOVA + repeated measures using distance based + expm covariance link function
-fit6 <- mcglm(linear_pred = c(form.lk, form.lca, form.lmg),
-              matrix_pred = list(c(Z_rw), c(Z_rw), c(Z_rw)),
-              covariance = c("inverse","inverse","inverse"),
+# MANOVA + repeated measures using random walk + expm covariance link
+# function.
+fit6 <- mcglm(linear_pred = form,
+              matrix_pred = list(c(Z_rw),
+                                 c(Z_rw),
+                                 c(Z_rw)),
+              covariance = c("inverse",
+                             "inverse",
+                             "inverse"),
               control_algorithm = list(tunning = 0.5, max_iter = 100),
-              data = data)
+              data = teca)
+```
 
-# Comparing models fit
-rbind(gof(fit1), gof(fit1.1), gof(fit2), gof(fit3), 
-      gof(fit4), gof(fit5), gof(fit6))
+## Comparing the models
 
-# Multivariate hypotheses test
-source("../../review/functions.R")
+```{r}
+#-----------------------------------------------------------------------
+# Comparing models fit.
+
+m <- c("MANOVA",
+       "Indep",
+       "Unstr",
+       "MA(1)",
+       "Eucl",
+       "Eucl expm",
+       "RW expm")
+meas <- rbind(gof(fit00),
+              gof(fit1),
+              gof(fit2),
+              gof(fit3),
+              gof(fit4),
+              gof(fit5),
+              gof(fit6))
+meas <- cbind(model = m,
+              as.data.frame(meas),
+              stringsAsFactors = FALSE)
+meas$model <- with(meas,
+                   factor(model,
+                          levels = model[order(Df)]))
+meas <- plyr::arrange(meas, Df)
+meas
+```
+```{r, fig.height = 12}
+barchart(plogLik + pAIC + pBIC + pKLIC~ model,
+         outer = TRUE,
+         layout = c(1, NA),
+         as.table = TRUE,
+         ylab = "Measures of model fitting",
+         xlab = "Fitted models",
+         data = meas,
+         scales = "free") +
+    layer(grid.text(x = unit(1:nlevels(x), "native"),
+                    y = unit(0.03, "npc"),
+                    label = meas$Df))
+```
+
+## Pillai test for McGLM
+
+```{r}
+#-----------------------------------------------------------------------
+# Multivariate hypotheses tests for McGLM.
+
+source("../review/functions.R")
+library(Matrix)
+
 manova.mcglm(fit1)
 manova.mcglm(fit2)
+```
 
-# Correlation between outcomes
+## Estimated correlations
+
+```{r}
+#--------------------------------------------
+# Correlations.
+
+# Correlation between responses.
 summary(fit2, print = "Correlation")
 
-# Correlation between cam
-# Response lk
+# Correlation among `cam` for the `lk` response.
 COR_lk <- matrix(NA, 3, 3)
 COR_lk[lower.tri(COR_lk)] <- fit2$Covariance[5:7]
 COR_lk[upper.tri(COR_lk)] <- fit2$Covariance[5:7]
 diag(COR_lk) <- fit2$Covariance[4]
 cov2cor(COR_lk)
 
-# Response lca
+# Correlation among `cam` for the `lca` response.
 COR_lca <- matrix(NA, 3, 3)
 COR_lca[lower.tri(COR_lca)] <- fit2$Covariance[9:11]
 COR_lca[upper.tri(COR_lca)] <- fit2$Covariance[9:11]
 diag(COR_lca) <- fit2$Covariance[8]
 cov2cor(COR_lca)
 
-# Response lmg
+# Correlation among `cam` for the `lmg` response.
 COR_lmg <- matrix(NA, 3, 3)
 COR_lmg[lower.tri(COR_lmg)] <- fit2$Covariance[13:15]
 COR_lmg[upper.tri(COR_lmg)] <- fit2$Covariance[13:15]
 diag(COR_lmg) <- fit2$Covariance[12]
 cov2cor(COR_lmg)
 
+# TODO How create the 9 x 9 correlogran using these values?
+```
 
+# Session information
+
+```{r}
+# devtools::session_info()
+Sys.time()
+cbind(Sys.info())
+sessionInfo()
+```
