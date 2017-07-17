@@ -22,9 +22,13 @@ navbar:
       menu:
       - text: "Introduction and Outline"
         href: slides/0-intro.html
+    - text: "Tutorials"
+      menu:
+      - text: "Sequential vs marginal"
+        href: tutorials/sequential-marginal.html
     - text: "Scripts"
       href: https://github.com/leg-ufpr/mcglm4aed/tree/master/slides/scripts
-  right:
+right:
     - text: GitHub
       icon: fa-github fa-lg
       href: https://github.com/leg-ufpr/mcglm4aed

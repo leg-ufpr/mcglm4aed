@@ -211,14 +211,8 @@ pre code {
     font-size: 14px;
 }
 
-code {
-    padding: 0px 0px;
-    font-size: 90%;
-    background-color: none;
-}
-
 /* R input */
-pre, code {
+pre {
     /* border-radius: 3px; */
     background-color: #EDEDED;
     color: #333;
@@ -242,6 +236,12 @@ pre:not([class]) code {
 
 pre:not([class]), code {
     background-color: #D4D4D4;
+}
+
+code {
+    padding: 0px 0px;
+    font-size: 90%;
+    background-color: transparent !important;
 }
 
 /* Solarized light--------------------------- */
