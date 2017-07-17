@@ -1,0 +1,9 @@
+slidy_presentation:
+# -- To display math offline.
+# mathjax: local
+# self_contained: false
+  css: config/slidy-style.css
+  footer: McGLMs for experimental data, Bonat & Zeviani (2017)
+  highlight: tango
+  includes:
+    in_header: config/MathJax.html
