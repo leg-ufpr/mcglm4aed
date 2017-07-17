@@ -194,7 +194,7 @@ pre.sourceCode {
 
 /* Referências ------------------------------ */
 
-div.references p {
+div#refs > div > p {
     text-indent: -1em;
     margin-left: 1em;
     text-align: left;
