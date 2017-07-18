@@ -685,7 +685,7 @@ colnames(COR) <- rownames(COR) <- c("yield", "w100", "K", "tg", "viab")
 corrplot(COR,
          type = "upper",
          tl.pos = "d",
-         outline=TRUE,
+         outline = TRUE,
          method = "ellipse")
 corrplot(COR,
          add = TRUE,
