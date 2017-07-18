@@ -1,3 +1,25 @@
+---
+title: "Water and potassium on the production of soybean"
+author: |
+  | Wagner H. Bonat   | Walmes M. Zeviani |
+  |:-----------------:|:-----------------:|
+  | `wbonat@ufpr.br`  | `walmes@ufpr.br`  |
+date: >
+  63^a^ RBras & 17^o^ SEAGRO</br>
+  July 24--28, 2017</br>
+  UFLA, Lavras/MG
+---
+
+```{r, include = FALSE}
+source("../slides/config/_setup.R")
+```
+
+# Data description and objectives
+
+  * TODO
+  * TODO
+
+```{r}
 #-----------------------------------------------------------------------
 # Packages.
 
@@ -6,225 +28,13 @@ library(lattice)
 library(latticeExtra)
 library(car)
 library(candisc)
+library(corrplot)
+```
 
-#=======================================================================
-# Warming up with the `iris` dataset.
+# MLM for the soybean dataset
 
-scatterplotMatrix(~Sepal.Length + Sepal.Width +
-                      Petal.Length + Petal.Width | Species,
-                  data = iris,
-                  smooth = FALSE,
-                  reg.line = FALSE,
-                  ellipse = TRUE,
-                  by.groups = TRUE,
-                  gap = 0,
-                  diagonal = "density")
-
+```{r}
 #-----------------------------------------------------------------------
-# Petal.Length & Petal.Width.
-
-scatterplotMatrix(~Petal.Length + Petal.Width | Species,
-                  data = iris,
-                  smooth = FALSE,
-                  reg.line = FALSE,
-                  ellipse = TRUE,
-                  by.groups = TRUE,
-                  gap = 0,
-                  diagonal = "density")
-
-# Iris full model.
-m1 <- lm(cbind(Petal.Length,
-               Petal.Width) ~ Species,
-         data = iris)
-
-# Iris null model.
-m0 <- update(m1, . ~ 1)
-
-# MANOVA with Pillai test.
-anova(m1)
-
-# Error SSP of the full and null models.
-S_full <- crossprod(residuals(m1))
-S_null <- crossprod(residuals(m0))
-
-# Extra SSP due the hypothesis.
-S_extr <- S_null - S_full
-
-# Eigen decomposition -> canonical analysis.
-ei <- eigen(solve(S_full, S_extr))
-ei
-
-# Cumulated proportion.
-cumsum(ei$values)/sum(ei$values)
-
-# Scores (canonical variables).
-scores <- as.matrix(m1$model[1]) %*% ei$vectors[, 1:2]
-
-# Plot of the scores.
-xyplot(scores[, 2] ~ scores[, 1],
-       groups = iris$Species,
-       grid = TRUE,
-       auto.key = TRUE,
-       aspect = "iso") +
-    layer(panel.ellipse(...))
-
-#--------------------------------------------
-# Using the `candisc` package.
-
-c1 <- candisc(m1, term = "Species")
-str(c1)
-
-summary(c1)
-
-ei$vectors[, 1:2]
-c1$coeffs.raw
-c1$coeffs.raw/ei$vectors[, 1:2]
-
-scatterplotMatrix(~Can1 + Can2| Species,
-                  data = c1$scores,
-                  smooth = FALSE,
-                  reg.line = FALSE,
-                  ellipse = TRUE,
-                  by.groups = TRUE,
-                  gap = 0,
-                  diagonal = "density")
-
-
-# Scores: canonical variates.
-xy_can <-
-    xyplot(Can2 ~ Can1,
-           groups = Species,
-           data = c1$scores,
-           xlab = NULL,
-           ylab = NULL,
-           aspect = "iso",
-           auto.key = list(columns = 3),
-           grid = TRUE) +
-    layer(panel.ellipse(...)) +
-    layer(panel.arrows(0, 0,
-                       c1$coeffs.raw[, 1],
-                       c1$coeffs.raw[, 2],
-                       length = 0.1))
-
-xy_ori <-
-    xyplot(Petal.Length ~ Petal.Width,
-           groups = Species,
-           aspect = "iso",
-           data = iris,
-           grid = TRUE) +
-    layer(panel.ellipse(...))
-
-c(xy_can, xy_ori, layout = c(1, 2))
-
-#--------------------------------------------
-# Univariate analysis of each canical variate.
-
-an0 <- lm(scores ~ Species, data = iris)
-summary(an0)
-
-#-----------------------------------------------------------------------
-# Sepal.Length & Sepal.Width.
-
-scatterplotMatrix(~Sepal.Length + Sepal.Width | Species,
-                  data = iris,
-                  smooth = FALSE,
-                  reg.line = FALSE,
-                  ellipse = TRUE,
-                  by.groups = TRUE,
-                  gap = 0,
-                  diagonal = "density")
-
-# Iris full model.
-m1 <- lm(cbind(Sepal.Length,
-               Sepal.Width) ~ Species,
-         data = iris)
-
-# Iris null model.
-m0 <- update(m1, . ~ 1)
-
-# MANOVA with Pillai test.
-anova(m1)
-
-# Error SSP of the full and null models.
-S_full <- crossprod(residuals(m1))
-S_null <- crossprod(residuals(m0))
-
-# Extra SSP due the hypothesis.
-S_extr <- S_null - S_full
-
-# Eigen decomposition -> canonical analysis.
-ei <- eigen(solve(S_full, S_extr))
-ei
-
-# Cumulated proportion.
-cumsum(ei$values)/sum(ei$values)
-
-# Scores (canonical variables).
-scores <- as.matrix(m1$model[1]) %*% ei$vectors[, 1:2]
-
-# Plot of the scores.
-xyplot(scores[, 2] ~ scores[, 1],
-       groups = iris$Species,
-       grid = TRUE,
-       auto.key = TRUE,
-       aspect = "iso") +
-    layer(panel.ellipse(...))
-
-#--------------------------------------------
-# Using the `candisc` package.
-
-c1 <- candisc(m1, term = "Species")
-str(c1)
-
-summary(c1)
-
-ei$vectors[, 1:2]
-c1$coeffs.raw
-c1$coeffs.raw/ei$vectors[, 1:2]
-
-scatterplotMatrix(~Can1 + Can2| Species,
-                  data = c1$scores,
-                  smooth = FALSE,
-                  reg.line = FALSE,
-                  ellipse = TRUE,
-                  by.groups = TRUE,
-                  gap = 0,
-                  diagonal = "density")
-
-
-# Scores: canonical variates.
-xy_can <-
-    xyplot(Can2 ~ Can1,
-           groups = Species,
-           data = c1$scores,
-           xlab = NULL,
-           ylab = NULL,
-           aspect = "iso",
-           auto.key = list(columns = 3),
-           grid = TRUE) +
-    layer(panel.ellipse(...)) +
-    layer(panel.arrows(0, 0,
-                       c1$coeffs.raw[, 1],
-                       c1$coeffs.raw[, 2],
-                       length = 0.1))
-
-xy_ori <-
-    xyplot(Sepal.Length ~ Sepal.Width,
-           groups = Species,
-           aspect = "iso",
-           data = iris,
-           grid = TRUE) +
-    layer(panel.ellipse(...))
-
-c(xy_can, xy_ori, layout = c(1, 2))
-
-#--------------------------------------------
-# Univariate analysis of each canical variate.
-
-an0 <- lm(scores ~ Species, data = iris)
-summary(an0)
-
-#=======================================================================
 # Multivariate analysis of the soybean dataset.
 
 data(soybeanwp, package = "wzRfun")
@@ -278,7 +88,7 @@ anova(m0)
 summary.aov(m0)
 
 # Univariate model summaries.
-summary(m0)
+# summary(m0)
 
 # Estimated parameter.
 coef(m0)
@@ -299,6 +109,12 @@ scatterplotMatrix(r,
                   diagonal = "qqplot")
 palette(oldpal)
 
+corrplot(cor(r),
+         type = "upper",
+         tl.pos = "d",
+         outline = TRUE,
+         method = "ellipse")
+
 #-----------------------------------------------------------------------
 # Canonical analysis.
 
@@ -306,24 +122,24 @@ cd_WP <- candisc(m0, term = "Wtr:Pts")
 cd_WP
 cd_WP$coeffs.raw
 head(cd_WP$scores)
+plot(cd_WP)
 
 cd_P <- candisc(m0, term = "Pts")
 cd_P
 cd_P$coeffs.raw
 head(cd_P$scores)
+plot(cd_P)
 
 cd_W <- candisc(m0, term = "Wtr")
 cd_W
 cd_W$coeffs.raw
 head(cd_W$scores)
-
-par(mfrow = c(1, 3))
 plot(cd_W)
-plot(cd_P)
-plot(cd_WP)
-layout(1)
+```
 
-#=======================================================================
+```{r eval = FALSE, include = FALSE}
+#-----------------------------------------------------------------------
+# ATTENTION: code in tests.
 
 # full <- cbind(yield, tg, w100, Kconc, pvp) ~ blk + Wtr * Pts
 # null <- . ~ blk + Wtr + Pts
@@ -367,5 +183,14 @@ grid()
 layout(1)
 
 # ATTENTION: This requires more study to fully understand.
-
 #-----------------------------------------------------------------------
+```
+
+# Session information
+
+```{r}
+# devtools::session_info()
+Sys.time()
+cbind(Sys.info())
+sessionInfo()
+```
