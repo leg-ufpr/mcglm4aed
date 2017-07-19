@@ -6,7 +6,7 @@ author: |
   |:-----------------:|:-----------------:|
   | `wbonat@ufpr.br`  | `walmes@ufpr.br`  |
 date: >
-  63^a^ RBras & 17^o^ SEAGRO</br>
+  62^a^ RBras & 17^o^ SEAGRO</br>
   July 24--28, 2017</br>
   UFLA, Lavras/MG
 ---
