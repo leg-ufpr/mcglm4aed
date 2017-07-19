@@ -1,0 +1,529 @@
+---
+title: "Multivariate analysis of Gaussian data (MANOVA)"
+subtitle: Part I
+author: |
+  | Wagner H. Bonat   | Walmes M. Zeviani |
+  |:-----------------:|:-----------------:|
+  | `wbonat@ufpr.br`  | `walmes@ufpr.br`  |
+date: >
+  63^a^ RBras & 17^o^ SEAGRO</br>
+  July 24--28, 2017</br>
+  UFLA, Lavras/MG
+---
+
+# A quick overview of Linear Models (LM)
+
+## Model specification
+
+The model for each observation $i = 1, \ldots, n$, is
+$$
+\begin{aligned}
+  y_i &\sim \text{Normal}(\mu_i, \sigma^2)\\
+  \mu_i &= \mathbf{X}_{i.}\boldsymbol{\beta},
+\end{aligned}
+$$
+
+where
+
+  * $y_i$: observed response for the $i$th sample unit.
+  * $\mu_i$: its expected value (mean).
+  * $\sigma^2$: the error variance (non explained variation).
+  * $\mathbf{X}_{i.}$: ($1 \times k$) its row vector of (known) predictor
+    variables.
+  * $\boldsymbol{\beta}$: ($k \times 1$) the regression parameters
+    associated to the predictor variables.
+
+The model written for the response (column) vector is
+$$
+\begin{aligned}
+  \mathbf{y} &=
+    \mathbf{X}\boldsymbol{\beta} + \boldsymbol{\epsilon} \\
+  \boldsymbol{\epsilon} &\sim
+    \text{Normal}_n(\mathbf{0}, \sigma^2 \mathbf{I}) \Rightarrow
+  \epsilon_i \overset{iid}{\sim}
+    \text{Normal}(0, \sigma^2),
+\end{aligned}
+$$
+
+where
+
+  * $\mathbf{y}$: ($n \times 1$) (single) response variable.
+  * $\mathbf{X}$: ($n \times k$) the complete design matrix.
+  * $\boldsymbol{\beta}$: ($k \times 1$) already described.
+  * $\boldsymbol{\epsilon}$: ($n \times 1$) error vector.
+  * $\mathbf{I}$: ($n \times n$) an identity matrix.
+  * $\epsilon_i$: $i$th element of the error vector.
+
+## Likelihood function and estimation
+
+The likelihood function for $\boldsymbol{\beta}$ and $\sigma^2$ is
+
+$$
+\begin{aligned}
+L(\boldsymbol{\beta}, \sigma^2) &=
+  \prod_{i=1}^n \left[
+    (2\pi\sigma^2)^{-1/2}
+      \exp\left\{-\frac{
+        (y_i - \mathbf{X}_{i.}\boldsymbol{\beta})^2}{2\sigma^2}
+      \right\}
+  \right ]\\
+  &=
+  (2\pi\sigma^2)^{-n/2}
+    \exp\left\{-\frac{
+      (\mathbf{y} - \mathbf{X}\boldsymbol{\beta})'
+      (\mathbf{y} - \mathbf{X}\boldsymbol{\beta})}{2\sigma^2}
+    \right\}\\
+  &=
+  (2\pi)^{-n/2} |\sigma^2 \mathbf{I}|^{-1/2}
+    \exp\left\{-\frac{1}{2}
+      (\mathbf{y} - \mathbf{X}\boldsymbol{\beta})'
+       (\sigma^2 \mathbf{I})^{-1}
+      (\mathbf{y} - \mathbf{X}\boldsymbol{\beta})
+    \right\}.
+\end{aligned}
+$$
+
+The MLE estimators are
+
+$$
+\begin{aligned}
+  \boldsymbol{\hat\beta} &=
+    (\mathbf{X}' \mathbf{X})^{-1} \mathbf{X}' \mathbf{y}\\
+  \hat{\sigma}^2 &=
+    (\mathbf{y} - \mathbf{\hat y})'
+    (\mathbf{y} - \mathbf{\hat y})/n,
+      \quad \mathbf{\hat y} = \mathbf{X} \boldsymbol{\hat\beta},\\
+\end{aligned}
+$$
+
+The maximized likelihood is
+
+$$
+\begin{aligned}
+\max_{\beta, \sigma^2} L(\boldsymbol{\beta}, \sigma^2) &=
+    L(\boldsymbol{\hat\beta}, \hat{\sigma}^2) \\
+  &= (2\pi)^{-n/2} (\hat{\sigma}^2)^{-n/2}
+       \exp\left\{-n/2 \right\}.
+\end{aligned}
+$$
+
+## Linear hypotheses tests on $\boldsymbol{\beta}$
+
+A linear hypothesis is
+$$
+H_0: \mathbf{F}\boldsymbol{\beta} = \mathbf{c}
+  \quad \textrm{vs} \quad
+H_1: \mathbf{F}\boldsymbol{\beta} \neq \mathbf{c}
+$$
+
+where
+
+  * $\mathbf{F}$ is a $h \times k$ ($h = \text{rank}(\mathbf{F}) < k$)
+    matrix.
+  * $\mathbf{c}$ is a $h \times 1$ vector.
+
+There are two especial cases of this formulation:
+
+  * When $\mathbf{F}$ is used to test the effect of some predictor
+    variables. For example
+    $$
+    \begin{align*}
+      \mu_{ij} &= \mu + \tau_i + \lambda_j,\quad i = 2, 3, 4;\quad j=2, 3.\\
+      H_0 &: \tau_2 = 0 \cap \tau_3 = 0 \cap \tau_4 = 0
+        \Rightarrow \tau_i = 0, \forall i.\\
+    \end{align*}
+    $$
+    In terms fo the above formulation, this is
+    $$
+    \begin{bmatrix}
+      0 & 1 & 0 & 0 & 0 & 0\\
+      0 & 0 & 1 & 0 & 0 & 0\\
+      0 & 0 & 0 & 1 & 0 & 0
+    \end{bmatrix}
+    \begin{bmatrix}
+      \mu \\
+      \tau_2 \\
+      \tau_3 \\
+      \tau_4 \\
+      \lambda_2\\
+      \lambda_3
+    \end{bmatrix} =
+    \begin{bmatrix}
+      0\\ 0\\ 0
+    \end{bmatrix}.
+    $$
+    This can be tested comparing nested models
+    $$
+    \begin{align*}
+      \mu_{ij} &= \mu + \tau_i + \lambda_j \quad \text{(full model)}\\
+               & \text{vs}\\
+      \mu_{ij} &= \mu + \lambda_j \quad \text{(reduced model)}
+    \end{align*}
+    $$
+  * When $\mathbf{F}$ describes contrasts. For example
+    $$
+    H_0 : \mu_{.2} - \mu_{.3} = 0
+      \quad \Rightarrow \quad
+      \lambda_2 - \lambda_3 = 0.
+    $$
+    This is written as
+    $$
+    \begin{bmatrix}
+      0 & 0 & 0 & 0 & 1 & -1
+    \end{bmatrix}
+    \begin{bmatrix}
+      \mu \\
+      \tau_2 \\
+      \tau_3 \\
+      \tau_4 \\
+      \lambda_2\\
+      \lambda_3
+    \end{bmatrix} =
+    \begin{bmatrix}
+      0
+    \end{bmatrix}.
+    $$
+    The above hypothesis can be tested through nested models if you
+    recode the factor levels combining levels 2 and 3 into a single one.
+
+## Likelihood ratio test
+
+Let $\boldsymbol{\hat\beta}_0$ and $\sigma^2_0$ the MLE under the
+$H_0$.
+
+The likelihood ratio test is the ratio of the maximized likelihoods.
+$$
+\begin{align*}
+\Lambda &= \frac{
+  \max_{H_0} L(\textit{reduced model})}{
+  \max_{H_1} L(\textit{full model})}\\
+ &= \frac{
+  \max_{\beta_0, \sigma_0^2} L(\boldsymbol{\beta}_0, \sigma_0^2)}{
+  \max_{\beta, \sigma^2} L(\boldsymbol{\beta}, \sigma^2)}\\
+ &= \frac{L(\boldsymbol{\hat\beta}_0, \hat{\sigma}_0^2)}{
+  L(\boldsymbol{\hat\beta}, \hat{\sigma}^2)}\\
+ &= \left(\frac{\hat{\sigma}_0^2}{\hat{\sigma}^2} \right)^{-n/2}
+\end{align*}
+$$
+
+Notice the kernel of this test is a ratio of variances.
+
+In terms of deviance, we get
+$$
+\begin{align*}
+  D &= 2 \log\left(\frac{\max L}{\max_{H_0} L} \right)\\
+    &= 2 \log \left[\left(
+      \frac{\hat{\sigma}^2}{\hat{\sigma}_0^2}\right)^{-n/2} \right]\\
+    &= -n \log \left(
+      \frac{\hat{\sigma}^2}{\hat{\sigma}_0^2}\right)\\
+  &= -n \log\left(
+    \frac{\text{RSS}}{\text{RSS}_0} \right),\\
+\end{align*}
+$$
+where $\text{RSS} = n\hat{\sigma}^2$ and $\text{RSS}_0 = n
+\hat{\sigma}_0^2$.
+
+Under $H_0$, $D$ has an asymptotic $\chi^2$ distribution with $h$
+degrees of freedom.
+
+```{r, eval = FALSE, include = FALSE}
+# Chi-square distribution of the deviance.
+trt <- gl(4, 25)
+h <- nlevels(trt) - 1
+n <- length(trt)
+pval <- replicate(2000, {
+    y <- rnorm(n)
+    m1 <- lm(y ~ trt)
+    m0 <- update(m1, y ~ 1)
+    X2 <- -n * log(deviance(m1)/deviance(m0))
+    pchisq(X2, df = h)
+})
+plot(ecdf(pval))
+segments(0, 0, 1, 1, col = 2)
+```
+
+Remember that $\text{RSS}_0 = \text{RSS} + \text{ExtraSS}$. The
+$\text{ExtraSS}$ is due the constrain in the hypothesis $H_0$, so it
+will be named hypothesis sum of squares
+$$
+\text{HSS} = \text{RSS}_0 - \text{RSS}.
+$$
+
+Remember that the $F$ test in the ANOVA is a ratio of mean squares
+($\text{MS}$),
+$$
+  F = \frac{\text{HMS}}{\text{RMS}} =
+    \frac{\text{HSS}/h}{\text{RSS}/(n - k)} \sim F_{h;n-k}.
+$$
+
+The above can be rewritten using the $\text{HSS}$. The kernel of the
+$\Lambda$ statistic is $\frac{\hat{\sigma}_0^2}{\hat{\sigma}^2}$.
+
+That is practically the same what is been doing in the likelihood,
+$$
+  \frac{\hat{\sigma}_0^2}{\hat{\sigma}^2} =
+  1 + \frac{\hat{\sigma}_0^2 - \hat{\sigma}^2}{\hat{\sigma}^2}
+  \propto \frac{n(\hat{\sigma}_0^2 - \hat{\sigma}^2)}{n\hat{\sigma}^2} =
+  \frac{\text{RSS}_0 - \text{RSS}}{\text{RSS}}
+  \propto \frac{\text{HSS}}{\text{RSS}}\cdot\frac{n-k}{h}
+  \sim F_{h;n-k}.
+$$
+
+## Wald test
+
+The Wald test can test the same hypothesis based on the extra sum of
+squares, $\text{HSS}$,
+$$
+\begin{align*}
+H_0\, &: \mathbf{F}\boldsymbol{\beta} = \mathbf{c}\\
+\text{HSS} &=
+   (\mathbf{F} \boldsymbol{\hat\beta} - \mathbf{c})'
+   [\mathbf{F} (\mathbf{X}'\mathbf{X})^{-1}\mathbf{F}']^{-1}
+   (\mathbf{F}\boldsymbol{\hat\beta} - \mathbf{c})\\
+\end{align*}
+$$
+where $\text{HSS}$ is the extra sum of squares due the hypothesis $H_0$.
+
+Under the $H_0$, the statistic
+$$
+\begin{align*}
+F &= \frac{\text{HSS}}{h\hat{\sigma}^2} \\
+  &= \frac{\text{HSS}}{\text{RSS}}\cdot\frac{n-k}{h} \sim F_{h; n - k},
+\end{align*}
+$$
+has an $F$ distribution with $h$ and $n - k$ degrees of freedom.
+
+The Wald test can be written in terms of the covariânce matrix of
+$\boldsymbol{\hat\beta}$, $\hat{\Sigma}_{\beta}$,
+$$
+F =
+   (\mathbf{F} \boldsymbol{\hat\beta} - \mathbf{c})'
+   [\mathbf{F} (\hat{\Sigma}_{\beta})\mathbf{F}']^{-1}
+   (\mathbf{F}\boldsymbol{\hat\beta} - \mathbf{c}),
+$$
+where $\hat{\Sigma}_{\beta} =
+\hat{\sigma}^2 (\mathbf{X}'\mathbf{X})^{-1}$.
+
+## Key facts
+
+Fifty shades of the $F$ statistic
+
+  * Likelihood ratio test (ratio of variances)
+  * Sum of squares decomposition (ratio of mean squares)
+  * Mahalanobis distance (Wald)
+
+The $F$ statistic from the likelihood ratio test, ANOVA or Wald is the
+same.
+
+Each $F$ device is centered in the ideia of how large is the
+$\text{HSS}$ (evidence against $H_0$) in relation to the $\text{RSS}$.
+
+# Multivariate Linear Models (MLM)
+
+## Model specification
+
+We are now extend the previous notation to consider a vector of $r$
+responses measured in each sample unit.
+
+The model for each sample unit $i = 1, \ldots, n$, is
+$$
+\begin{aligned}
+  \mathbf{Y}_{i.} &\sim \text{Normal}_r(\boldsymbol{\mu}_i, \Sigma)\\
+  \boldsymbol{\mu}_i &= \mathbf{X}_{i.}\boldsymbol{B},
+\end{aligned}
+$$
+
+where
+
+  * $\mathbf{Y}_{i.}$: ($1 \times r$) the observed response vector for
+    the $i$th sample unit.
+  * $\boldsymbol{\mu}_i$: its expected vector (mean).
+  * $\Sigma$: the error covariance between responses (non explained
+    variation).
+  * $\mathbf{X}_{i.}$: ($1 \times k$) its row vector of (known)
+    predictor variables.
+  * $\boldsymbol{B}$: ($k \times r$) the regression parameters matrix
+    associated to the predictor variables and responses.
+
+The model written for the response matrix is
+$$
+\begin{aligned}
+  \mathbf{Y} &=
+    \mathbf{X}\boldsymbol{B} + \boldsymbol{E} \\
+  \boldsymbol{E}_{i.} &\sim
+    \text{Normal}_r(\mathbf{0}, \Sigma)
+\end{aligned}
+$$
+where
+
+  * $\mathbf{Y}$: ($n \times r$) the response matrix.
+  * $\mathbf{X}$: ($n \times k$) the design matrix.
+  * $\boldsymbol{B}$: ($k \times r$) already described.
+  * $\boldsymbol{E}$: ($n \times r$) error matrix.
+  * $\boldsymbol{E}_{i.}$: the $i$th row of the error matrix.
+
+```{r, echo = FALSE, out.width = "90%"}
+knitr::include_graphics("img/matricial_manova_2.png")
+```
+
+## Likelihood function
+
+The likehood for one sample unit is
+$$
+\begin{aligned}
+  L(\boldsymbol{B},\Sigma,\mathbf{Y}_{i.}) =
+    (2\pi)^{-r/2} |\Sigma|^{-1/2}
+    \exp\left\{
+      -\frac{1}{2}
+      (\mathbf{Y}_{i.} - \mathbf{X}_{i.}\boldsymbol{B})
+       \Sigma^{-1}
+      (\mathbf{Y}_{i.} - \mathbf{X}_{i.}\boldsymbol{B})'
+    \right\}
+\end{aligned}
+$$
+
+For all sample units is
+
+$$
+\begin{aligned}
+  L(\boldsymbol{B},\Sigma,\mathbf{Y}) &= \prod_{i = 1}^n
+    (2\pi)^{-r/2} |\Sigma|^{-1/2}
+    \exp\left\{
+      -\frac{1}{2}
+      (\mathbf{Y}_{i.} - \mathbf{X}_{i.}\boldsymbol{B})
+       \Sigma^{-1}
+      (\mathbf{Y}_{i.} - \mathbf{X}_{i.}\boldsymbol{B})'
+    \right\}\\
+    &= (2\pi)^{-nr/2} |\Sigma|^{-n/2}
+    \exp\left\{
+      -\frac{1}{2} \sum_{i = 1}^n
+      (\mathbf{Y}_{i.} - \mathbf{X}_{i.}\boldsymbol{B})
+       \Sigma^{-1}
+      (\mathbf{Y}_{i.} - \mathbf{X}_{i.}\boldsymbol{B})'
+    \right\}.
+\end{aligned}
+$$
+
+Its id convenient to use the stacked version of the matrices.
+
+  * Define the $\text{vec}$ as the operator that stacks the columns of a
+    $n \times r$ matrix creating a $rn \times 1$ vector
+    $$
+    \mathbf{Y} = \begin{bmatrix}
+      y_{11} & y_{12}\\
+      y_{21} & y_{22}\\
+      y_{31} & y_{32}
+    \end{bmatrix}
+    \quad  \text{ then } \quad
+    \text{vec}(\mathbf{Y})  =
+    \begin{bmatrix}
+      y_{11}\\ y_{21}\\ y_{31}\\ \vdots \\ y_{32}
+    \end{bmatrix}.
+    $$
+  * Define the $\text{Bdiag}$ as the operator that return the direct sum
+    of a set of matrices
+    $$
+    \begin{align*}
+    \text{Bdiag}(\mathbf{X}_1, \mathbf{X}_2,
+      \ldots, \mathbf{X}_r) &=
+    {\mathbf{X}_1} \oplus {\mathbf{X}_2} \oplus
+      \cdots \oplus {\mathbf{X}_r} = \bigoplus_{j=1}^r \mathbf{X}_j \\
+    &=
+    {\begin{bmatrix}
+     {\mathbf{X}_1}   & {\boldsymbol{0}} & \cdots & {\boldsymbol{0}}\\
+     {\boldsymbol{0}} & {\mathbf{X}_2}   & \cdots & {\boldsymbol{0}}\\
+      \vdots          &  \vdots          & \ddots &  \vdots\\
+     {\boldsymbol{0}} & {\boldsymbol{0}} & \cdots & {\mathbf{X}_r}\\
+    \end{bmatrix}}.
+    \end{align*}
+    $$
+  * Define as the Kroneker product of two matrices the operation
+    $$
+    \mathbf{A} \otimes \mathbf{B} =
+      \begin{bmatrix}
+        a_{11} \mathbf{B} & \cdots & a_{1n} \mathbf{B} \\
+                   \vdots & \ddots & \vdots \\
+        a_{m1} \mathbf{B} & \cdots & a_{mn} \mathbf{B}
+      \end{bmatrix}.
+    $$
+
+Using these operators, the components for the stacked representation are
+
+  * $\mathcal{Y} = \text{vec}(\mathbf{Y})$ is the $rn \times 1$
+    response vector.
+  * $\mathcal{X} = \text{Bdiag}(\mathbf{X}_1, \ldots, \mathbf{X}_r)$
+    is the $rn \times rk$ design matrix for the stacked response
+    vector.
+  * $\boldsymbol{\beta} = \text{vec}(\boldsymbol{B})$ is the $rk
+    \times 1$ parameter vector.
+  * $\Omega = \Sigma \otimes \mathbf{I}_n$ is the covariance between
+    elements in the response vector.
+
+The model is now represented by
+
+$$
+  \mathcal{Y} \sim
+    \text{Normal}_{rn}(\mathcal{X}\boldsymbol{\beta}, \Omega).
+$$
+
+Also, it can be written as
+$$
+  \mathcal{Y} = \mathcal{X}\boldsymbol{\beta} + \mathcal{E}
+$$
+
+```{r, echo = FALSE, out.width = "75%"}
+knitr::include_graphics("img/matricial_manova_3.png")
+```
+
+The likelihood function is then defined as
+
+$$
+L(\boldsymbol{\beta}, \Omega) =
+  (2\pi)^{ -\frac{rn}{2} } |\Omega|^{-\frac{1}{2}}
+  \exp \left\{
+    -\frac{1}{2}
+    (\mathcal{Y} - \mathcal{X}\boldsymbol{\beta})^{'}
+    \Omega^{-1}
+    (\mathcal{Y} - \mathcal{X}\boldsymbol{\beta})
+  \right\}.
+$$
+
+## Estimation and properties
+
+$$
+\begin{align*}
+{\boldsymbol{\hat B}} &=
+  (\mathbf{X}'\mathbf{X})^{-1}\mathbf{X}'\mathbf{Y}\\
+{\boldsymbol{\hat B}}_{.j} &=
+  (\mathbf{X}'\mathbf{X})^{-1}\mathbf{X}'\mathbf{Y}_{.j}\\
+{\boldsymbol{\hat \beta}} &=
+  (\mathcal{X}'\mathcal{X})^{-1}\mathcal{X}'\mathcal{Y}\\
+\text{Cov}({\boldsymbol{\hat\beta}}) &=
+  {\hat\Sigma} \otimes
+  (\mathbf{X}'\mathbf{X})^{-1}
+  = \begin{bmatrix}
+    \hat{\sigma}_{11}(\mathbf{X}'\mathbf{X})^{-1} &
+    \cdots &
+    \hat{\sigma}_{1r}(\mathbf{X}'\mathbf{X})^{-1} \\
+    \vdots & \ddots & \vdots \\
+    \hat{\sigma}_{r1}(\mathbf{X}'\mathbf{X})^{-1} &
+    \cdots &
+    \hat{\sigma}_{rr}(\mathbf{X}'\mathbf{X})^{-1}
+    \end{bmatrix}
+\end{align*}
+$$
+
+
+<!--
+. -->
+
+
+# Canonical discriminant analysis
+
+# Examples
+
+# Limitations and extensions
+
+# Concluding remarks
+
+# References
