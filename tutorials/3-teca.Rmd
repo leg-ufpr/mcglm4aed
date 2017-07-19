@@ -331,8 +331,8 @@ grid.arrange(myplot(as.matrix(Z0[[1]])[i, i],
                     main = "First order moving average"),
              myplot(as.matrix(Z_dist[[1]])[i, i],
                     main = "Euclidian distance"),
-             myplot(as.matrix(Z_rw[[1]] +
-                              0.5 * Z_rw[[2]])[i, i],
+             myplot(solve(as.matrix(Z_rw[[1]] +
+                                    0.5 * Z_rw[[2]])[i, i]),
                     main = "Random walk"),
              ncol = 2)
 ```
