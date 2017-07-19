@@ -488,6 +488,22 @@ L(\boldsymbol{\beta}, \Omega) =
   \right\}.
 $$
 
+The maximized likelihood is
+
+$$
+\begin{align*}
+L(\boldsymbol{\hat\beta}, \hat\Omega)
+ &= (2\pi)^{-rn/2} |\hat\Sigma \otimes \mathbf{I}|^{-1/2}
+  \exp \left\{
+    -\frac{rn}{2}
+  \right\}\\
+ &= (2\pi)^{-rn/2} |\hat\Sigma|^{-n/2}
+  \exp \left\{
+    -\frac{rn}{2}
+  \right\}.
+\end{align*}
+$$
+
 ## Estimation and properties
 
 $$
@@ -513,16 +529,351 @@ $$
 \end{align*}
 $$
 
+## Hypotheses tests on $\boldsymbol{B}$ or $\boldsymbol{\beta}$
 
-<!--
-. -->
+A linear hypothesis can be defined in two equivalent ways.
 
+$$
+H_0: \mathbf{F}\boldsymbol{B}\mathbf{M} = \mathbf{C}
+  \quad \textrm{vs} \quad
+H_1: \mathbf{F}\boldsymbol{B}\mathbf{M} \neq \mathbf{C}
+$$
+
+where
+
+  * $\mathbf{F}$ is a $h \times k$ ($h = \text{rank}(\mathbf{F}) < k$)
+    matrix.
+  * $\boldsymbol{B}$ is the $k \times r$ parameter matrix.
+  * $\mathbf{M}$ is a $r \times v$ ($v \leq r$) matrix of linear
+    hypothesis on the responses. The most common scenario is when
+    $\boldsymbol{M} = \boldsymbol{I}_r$.
+  * $\mathbf{C}$ is a $h \times v$ matrix.
+
+Example of $\mathbf{F}\boldsymbol{B}\mathbf{M} = \mathbf{C}$ to test
+$H_0: \tau_{mi} = 0$ for all $mi$, $m = 1, \ldots, 4; i = 2, \ldots, 4$,
+$$
+\begin{bmatrix}
+  0 & 1 & 0 & 0 & 0 & 0\\
+  0 & 0 & 1 & 0 & 0 & 0\\
+  0 & 0 & 0 & 1 & 0 & 0
+\end{bmatrix}
+\begin{bmatrix}
+  \mu_{1}      &  \mu_{2}       &  \mu_{3}      &  \mu_{4}     \\
+  \tau_{12}    &  \tau_{22}     &  \tau_{32}    &  \tau_{42}   \\
+  \tau_{13}    &  \tau_{23}     &  \tau_{33}    &  \tau_{43}   \\
+  \tau_{14}    &  \tau_{24}     &  \tau_{34}    &  \tau_{44}   \\
+  \lambda_{12} &  \lambda_{22}  &  \lambda_{32} &  \lambda_{42}\\
+  \lambda_{13} &  \lambda_{23}  &  \lambda_{33} &  \lambda_{43}
+\end{bmatrix}
+\begin{bmatrix}
+  1 & 0 & 0 & 0\\
+  0 & 1 & 0 & 0\\
+  0 & 0 & 1 & 0\\
+  0 & 0 & 0 & 1
+\end{bmatrix} =
+\begin{bmatrix}
+  0 & 0 & 0 & 0\\
+  0 & 0 & 0 &  0\\
+  0 & 0 & 0 & 0\\
+\end{bmatrix}
+$$
+
+The same can be represented in using the vectorized form of
+$\boldsymbol{B}$, $\boldsymbol{\beta}$
+
+$$
+H_0: \mathbf{L}\boldsymbol{\beta} = \mathbf{c}
+  \quad \textrm{vs} \quad
+H_1: \mathbf{L}\boldsymbol{\beta} \neq \mathbf{c}
+$$
+
+where
+
+  * $\mathbf{L}$ is a $rh \times rk$
+    matrix.
+  * $\boldsymbol{\beta}$ is the $rk \times 1$ parameter vector.
+  * $\mathbf{c}$ is a $rh \times 1$ vector.
+
+Then
+
+$$
+\begin{align*}
+  \mathbf{H}
+      &= n(\hat{\Sigma}_0 - \hat{\Sigma})\\
+      &= (\mathbf{F}\boldsymbol{\hat{B}}\mathbf{M} - \mathbf{C})'
+    [\mathbf{F} (\mathbf{X}'\mathbf{X})^{-1} \mathbf{F}]
+         (\mathbf{F}\boldsymbol{\hat{B}}\mathbf{M} - \mathbf{C}),
+\end{align*}
+$$
+
+Let $\mathbf{R}$ be the residual sum of squares and cross products
+(SSP) of the full model
+$$
+  \mathbf{R} = (\mathbf{Y} - \mathbf{X}\boldsymbol{\hat{B}})'
+    (\mathbf{Y} - \mathbf{X}\boldsymbol{\hat{B}})'.
+$$
+
+The statistic
+$$
+  \text{tr} (\mathbf{H}\mathbf{R}^{-1}) = \sum_{i = 1}^{s} \lambda_i
+$$
+is known as Hotteling-Lawley trace.
+
+The values $\lambda_1 \geq \lambda_2 \geq \ldots \lambda_s$ are the
+nonzero eigen values of $\mathbf{H}\mathbf{R}^{-1}$.
+
+The same value is obtained as the result of a Wald test using the
+vectorized version of the components
+$$
+(\mathbf{L} \boldsymbol{\hat\beta} - \mathbf{c})'
+  [\mathbf{L} (
+    (\mathbf{M}' \mathbf{R} \mathbf{M}) \otimes
+    (\mathbf{X}'\mathbf{X})^{-1})
+   \mathbf{L}']
+  (\mathbf{L} \boldsymbol{\hat\beta} - \mathbf{c}).
+$$
+
+A test based on the likelihood ratio test is expressed in terms of
+generalized variances
+$$
+\begin{align*}
+  \Lambda
+   &= \frac{\max_{H_0} L(\beta, \Sigma)}{\max L(\beta, \Sigma)} \\
+   &= \left(\frac{|\hat{\Sigma}_0|}{|\hat{\Sigma}|}\right)^{-n/2},\\
+\end{align*}
+$$
+and the *Wilks' statistic* is
+$$
+  \Lambda^{2/n} = \frac{|\hat{\Sigma}|}{|\hat{\Sigma}_0|}.
+$$
+
+Under $H_0$, $n\hat{\Sigma} \sim W_{r;n-k}$ independently
+of $n(\hat{\Sigma}_0 - \hat{\Sigma}) \sim W_{r;h}$. The likelihood ratio
+test of $H_0$ is equivalent to reject $H_0$ for large values of
+$$
+  -2 \log \Lambda =
+    -n \log
+      \left(
+      \frac{|n\hat{\Sigma}|}{
+        |n\hat{\Sigma} + n(\hat{\Sigma}_0 - \hat{\Sigma})|}
+      \right).
+$$
+
+This has an asymptotic $\chi^2_{rm}$ distribution.
+
+## A piece of R code
+
+```{r, include = TRUE, eval = TRUE}
+rm(list = ls())
+
+# The iris dataset.
+m0 <- lm(cbind(Petal.Length,
+               Petal.Width,
+               Sepal.Length,
+               Sepal.Width) ~ Species,
+         data = iris)
+
+# The model matrix and the X'X.
+X <- model.matrix(m0)
+XlX <- crossprod(X)
+
+B <- coef(m0)    # Matrix of parameters.
+b <- cbind(c(B)) # vec(B): vectorized form.
+
+n <- nrow(X)  # Number of sample units.
+k <- nrow(B)  # Number of lines in B or columns in X.
+r <- ncol(B)  # Number of responses.
+
+# To test H_0: the Spiecies are equal in all responses.
+F <- rbind(c(0, 1, 0),
+           c(0, 0, 1))
+h <- nrow(F)  # Number of linear functions.
+
+# All responses.
+M <- cbind(diag(r))
+
+# Only the first response.
+# M <- cbind(diag(r)[, 1])
+
+v <- ncol(M) # Number of linear combination of responses.
+
+# Breads, ham and the Sandwich (H = hypothesis SSP).
+FBM <- F %*% B %*% M
+FXlXiF <- F %*% solve(XlX) %*% t(F)
+H <- t(FBM) %*% solve(FXlXiF) %*% FBM
+H
+
+library(car)
+
+# The F-statistic for the FBM = 0 hypothesis.
+linearHypothesis(m0,
+                 hypothesis.matrix = F,
+                 P = M)
+
+# The residual SPP of the full model.
+R <- crossprod(residuals(m0))
+
+# Model under the constrain of the H_0.
+m00 <- update(m0, . ~ 1)
+
+# The hypothesis SPP as a difference of residuals SPP.
+H <- crossprod(residuals(m00)) - R
+H
+
+# Function that returns the trace of a matrix.
+tr <- function(x) sum(diag(x))
+tr(solve(R) %*% H)
+tr(H %*% solve(R))
+
+# The trace is the Hotelling-Lawley criterion.
+anova(m0, test = "Hotelling")
+
+# Testing the Kronecker operation in R.
+# kronecker(diag(1:4), matrix(1, 2, 2))
+
+# Testing the same hypothesis but with the vectorized components.
+L <- kronecker(M, F)
+b
+Lb <- L %*% b
+Lb
+
+# Sigma <- var(residuals(m0))
+Sigma <- R/n
+
+# MSM <- t(M) %*% Sigma %*% M
+# MSM.XlXi <- kronecker(MSM, solve(XlX))
+# (1/n) * t(Lb) %*% solve(L %*% MSM.XlXi %*% t(L)) %*% Lb
+
+# Wald statistic.
+t(Lb) %*%
+    solve(L %*%
+          kronecker(t(M) %*% R %*% M,
+                    solve(XlX)) %*%
+          t(L)) %*%
+    Lb
+# H-L trace.
+tr(H %*% solve(R))
+
+# So, Wald is the Hotelling-Lawley trace criterion.
+```
+
+## The four multivariate hypothesis tests
+
+```{r, echo = FALSE, out.width = "75%"}
+knitr::include_graphics("img/the-four-kings.jpg")
+```
+
+The four kings!
+
+$$
+\begin{align*}
+\text{Wilk's lambda}
+  &= \prod_{i=1}^s \frac{1}{1+\lambda_i} =
+  \frac{|\mathbf{E}|}{|\mathbf{E} + \mathbf{H}|}\\
+\text{Pillai's trace}
+  &= \sum_{i=1}^s \frac{\lambda_i}{1+\lambda_i} =
+  \text{tr}(\mathbf{H}(\mathbf{H} + \mathbf{E})^{-1})\\
+\text{Hotelling-Lawley trace}
+  &= \sum_{i=1}^s \lambda_i =
+  \text{tr}(\mathbf{H}\mathbf{E}^{-1})\\
+\text{Roy's greatest root}
+  &= \lambda_1
+\end{align*}
+$$
+
+```{r, eval = TRUE, include = TRUE}
+# Eigen values of R^{-1}H
+lamb <- eigen(solve(R) %*% H)$values
+lamb
+
+# Hotelling-Lawley trace.
+anova(m0, test = "Hotelling")
+tr(H %*% solve(R))
+sum(lamb)
+
+# Pillai's trace.
+anova(m0, test = "Pillai")
+tr(H %*% solve(R + H))
+sum(lamb/(1 + lamb)) # Pillai trace.
+
+# Wilks' lambda.
+anova(m0, test = "Wilks")
+det(R)/det(R + H)
+1/prod(1 + lamb)
+
+# Roy's greatest root.
+anova(m0, test = "Roy")
+lamb[1]
+```
+
+```{r, include = FALSE, eval = FALSE}
+# Has an asymptotic chi-square aproxiamation.
+-n * log(det(R)/det(R + H))
+
+# Has a better chi-square approximation.
+-(n - k - 1/2 * (r - h + 1)) * log(det(R)/det(R + H))
+```
 
 # Canonical discriminant analysis
 
+## The intuition
+
+```{r, eval = TRUE, echo = FALSE, out.width = "75%", fig.cap = cap}
+cap <- "Marginal and countour plots for two responses measured for three groups."
+# cap <- fgn_("2docs", cap)
+include_graphics("img/marginal.jpg")
+```
+```{r, eval = TRUE, echo = FALSE, out.width = "75%", fig.cap = cap}
+cap <- "Marginal densities for the first canonical variate of two responses measured for three groups."
+# cap <- fgn_("2docs", cap)
+include_graphics("img/canonical.jpg")
+```
+
+## Fundamentals
+
+  * Canonical discriminant analysis (CDA) is a dimension reduction
+    technique.
+  * Is based on eigen decomposition of $\mathbf{R}^{-1}\mathbf{H}$.
+    * eigen values ($\lambda_i$) are similar to variances.
+    * eigen vectors ($w_{im}$) are weights in the linear combination.
+  * CDA finds linear combinations of the response variables, $z_u =
+    w_{u1} y_1 + \cdots + w_{ur} y_r$, that provide maximal separation
+    between groups.
+  * The coefficients of the linear combination are the canonical
+    coefficients or canonical weights.
+  * The variable defined by the linear combination is the first
+    canonical variable or canonical component.
+  * The canonical coefficients are not orthogonal, however, so the
+    canonical variables do not represent perpendicular directions
+    through the space of the original variables.
+
 # Examples
 
+## Datasets
+
+  * `iris`: 4 size responses $\sim$ 3 species;
+  * `teca`: soil chemicals  $\sim$ 3 soils layer (inner factor);
+  * `soybean`: 5 mixed type $\sim$ $3 \times 5$ factorial in RBD;
+  * `cras`: 4 hydric soil variables $\sim$ outer and inner factorial;
+  * others
+
 # Limitations and extensions
+
+## Some cautions and opportunities
+
+  * Assumptions: all depends on the Holy Trinity of Normality,
+    Homoscedasticity and Independence.
+  * Diagnostics: there are some visual and hypothesis based approach to
+    diagnostic departures from the Holy Trinity.
+  * Limitations:
+    * Missigns in some responses for a sample unit implies in deletion
+      of the entire sample unit.
+  * Extensions:
+    * Multiple design MLM (response with different predictors).
+    * Predictors with random effects (mixed MLM).
+    * Correlations between sample units (split-plot design).
+    * Non-gaussian responses.
+    * and more.
 
 # Concluding remarks
 
