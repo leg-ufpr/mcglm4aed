@@ -245,4 +245,10 @@ div.tocify-extend-page {
 	height: 10px !important;
 }
 
-/*------------------------------------------- */
+/* References ------------------------------- */
+
+div#refs > div > p {
+    text-indent: -1em;
+    margin-left: 1em;
+    text-align: left;
+}
