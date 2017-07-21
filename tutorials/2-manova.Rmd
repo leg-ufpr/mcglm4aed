@@ -363,7 +363,7 @@ where
   * $\boldsymbol{E}_{i.}$: the $i$th row of the error matrix.
 
 ```{r, echo = FALSE, out.width = "90%"}
-knitr::include_graphics("img/matricial_manova_2.png")
+knitr::include_graphics("../slides/img/matricial_manova_2.png")
 ```
 
 ## Likelihood function
@@ -472,7 +472,7 @@ $$
 $$
 
 ```{r, echo = FALSE, out.width = "75%"}
-knitr::include_graphics("img/matricial_manova_3.png")
+knitr::include_graphics("../slides/img/matricial_manova_3.png")
 ```
 
 The likelihood function is then defined as
@@ -760,7 +760,7 @@ tr(H %*% solve(R))
 ## The four multivariate hypothesis tests
 
 ```{r, echo = FALSE, out.width = "75%"}
-knitr::include_graphics("img/the-four-kings.jpg")
+knitr::include_graphics("../slides/img/the-four-kings.jpg")
 ```
 
 The four kings!
@@ -821,12 +821,12 @@ lamb[1]
 ```{r, eval = TRUE, echo = FALSE, out.width = "75%", fig.cap = cap}
 cap <- "Marginal and countour plots for two responses measured for three groups."
 # cap <- fgn_("2docs", cap)
-include_graphics("img/marginal.jpg")
+include_graphics("../slides/img/marginal.jpg")
 ```
 ```{r, eval = TRUE, echo = FALSE, out.width = "75%", fig.cap = cap}
 cap <- "Marginal densities for the first canonical variate of two responses measured for three groups."
 # cap <- fgn_("2docs", cap)
-include_graphics("img/canonical.jpg")
+include_graphics("../slides/img/canonical.jpg")
 ```
 
 ## Fundamentals

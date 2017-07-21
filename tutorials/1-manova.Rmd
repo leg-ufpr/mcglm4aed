@@ -30,7 +30,7 @@ date: >
     as a function of the four measured response variables.
 
 ```{r, include = FALSE, results = "hide", message = FALSE}
-source("./config/_setup.R")
+source("../slides/config/_setup.R")
 library(lattice)
 library(latticeExtra)
 library(gridExtra)
