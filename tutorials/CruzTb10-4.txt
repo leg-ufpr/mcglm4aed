@@ -1,0 +1,43 @@
+# Dados da produção média de frutos por planta (/100 kg) para 7
+# progênies de meio-irmãos de cupuaçuzeiro avaliados por um período de
+# cinco anos, em Manaus.  Os dados foram adaptados de SOUZA,
+# A. G. C. **Avaliação de progênies de cupuaçuzeiro (*Theobroma
+# grandiflorum* (Willd ex Spreng Schum))**. 1994. 95f. Tese (Doutorado
+# em Fitotecnia) -- Universidade Federal de Viçosa, Viçosa, MG, 1994. O
+# delineamento foi o de blocos completos casualizados. A característica
+# avaliada foi a produção média de frutos por planta, em quilogramas
+# (obs: dividir os dados abaixo por 100 para estar em quilogramas),
+# calculada pela relação peso médio de fruto e número médio de frutos
+# produzidos por planta. A medições foram realizadas em 5 anos
+# consecutivos sobre as mesmas parcelas. Dados extraídos de CRUZ, C. D.;
+# CARNEIRO, P. C. S.; REGAZZI, A. J. **Modelos Biometricos Aplicados Ao
+# Melhoramento Genético**. v2, 3 ed: UFV, 2014.
+prog	blk	y1988	y1989	y1990	y1991	y1992
+1	1	981	2242	3018	2140	5042
+1	2	650	962	1678	1080	1442
+1	3	429	1668	1735	2135	3340
+1	4	624	1536	2961	1085	1144
+2	1	1027	2211	3543	1070	5115
+2	2	427	711	1823	470	1315
+2	3	720	1772	3131	761	3213
+2	4	734	1150	2235	779	3217
+3	1	731	1035	2825	800	3551
+3	2	171	315	745	300	751
+3	3	533	745	1446	1072	2538
+3	4	369	605	2124	28	1764
+4	1	899	2326	3122	2092	4002
+4	2	259	866	1722	532	1002
+4	3	400	2435	1741	1474	2145
+4	4	758	757	3103	1150	3459
+5	1	862	2324	3043	1506	1919
+5	2	262	704	943	526	379
+5	3	370	2342	2425	793	1286
+5	4	754	686	1562	1239	1012
+6	1	944	2035	3315	1062	3106
+6	2	404	895	1315	462	566
+6	3	1167	2020	3544	1238	1636
+6	4	181	910	1086	286	2036
+7	1	736	1756	2767	1185	3288
+7	2	96	416	1087	345	48
+7	3	367	2056	2056	1578	3029
+7	4	465	116	1798	48	307
