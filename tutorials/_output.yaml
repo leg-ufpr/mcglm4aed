@@ -5,9 +5,9 @@ html_document:
   # code_folding: hide
   toc: true
   toc_dep: 3
-  toc_float:
-    collapsed: false
-    smooth_scroll: false
+#   toc_float:
+#     collapsed: false
+#     smooth_scroll: false
   number_sections: true
   css: config/vignette-style.css
   includes:
