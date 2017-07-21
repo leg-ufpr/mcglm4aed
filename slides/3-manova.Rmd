@@ -1,0 +1,181 @@
+---
+title: "Multivariate analysis of Gaussian data (MANOVA)"
+subtitle: Part I
+author: |
+  | Wagner H. Bonat   | Walmes M. Zeviani |
+  |:-----------------:|:-----------------:|
+  | `wbonat@ufpr.br`  | `walmes@ufpr.br`  |
+date: >
+  62^a^ RBras & 17^o^ SEAGRO</br>
+  July 24--28, 2017</br>
+  UFLA, Lavras/MG
+bibliography: config/ref.bib
+cls: config/elsevier-harvard.csl
+---
+
+# The univariate analysis of experimental data
+
+## Response variables in designed experiments
+
+```{r, include = FALSE}
+source("config/_setup.R")
+options(show.signif.stars = FALSE)
+```
+
+  * Designed experiments usually record several response variables.
+    - Size variables (weight, height, width, diameter, etc).
+    - Production variables (fresh/dry matter, yield, etc).
+    - Resistance variables (to disease, to stress, etc).
+    - Chemical variables (P, K, pH, Ca, Mg, etc).
+    - Mechanical variables (firmness, colors, etc).
+    - Sensory variables (sweetness, astringency, acidicity, etc).
+    - Performance variables (scores in math, language, running,
+      swimming, etc).
+  * Sets of correlated variables for the same dimension (production,
+    quality, leaning, flavor, etc).
+
+```{r, echo = FALSE, out.width = "100%"}
+include_graphics("img/several-measured-variables.png")
+```
+
+## Analysing the responses individually
+
+<!-- Code to show to commom situations. -->
+```{r, include = FALSE}
+#--------------------------------------------
+data(soybeanwp, package = "wzRfun")
+
+swp <- soybeanwp
+names(swp) <- c("pts", "wtr", "blk",
+                "yield", "w100", "Kconc", "tg", "nip", "nvp")
+swp <- transform(swp,
+                 Pts = factor(pts),
+                 Wtr = factor(wtr))
+
+#--------------------------------------------
+# Condition 1: all the conclusions are quite the same.
+
+# xyplot(yield + tg + w100 + Kconc ~ Wtr,
+#        outer = TRUE, scales = "free",
+#        data = subset(swp[-74, ], pts == 60))
+
+form <- cbind(yield, tg, w100, Kconc) ~ blk + Wtr
+m0 <- lm(form, data = subset(swp[-74, ], pts == 60))
+summary.aov(m0)
+
+library(doBy)
+library(multcomp)
+
+tb <- lapply(c("yield", "tg", "w100", "Kconc"),
+             FUN = function(y) {
+                 m0 <- lm(as.formula(sprintf("%s ~ blk + Wtr", y)),
+                          data = subset(swp[-74, ], pts == 60))
+                 m <- LSmeans(m0, effect = "Wtr")
+                 g <- glht(model = m0, linfct = mcp(Wtr = "Tukey"))
+                 g <- cld(g)$mcletters$Letters
+                 r <- data.frame(Wtr = m$grid$Wtr,
+                                 means = sprintf("%0.2f %s",
+                                                 m$coef[, "estimate"],
+                                                 g[as.character(m$grid$Wtr)]))
+                 names(r)[2] <- y
+                 return(r)
+             })
+
+# Table of means.
+tbm <- Reduce(merge, x = tb)
+tbm
+
+#--------------------------------------------
+# Condition 1: no sufficient evidence in each response.
+
+# xyplot(yield + tg + w100 + Kconc ~ Wtr,
+#        outer = TRUE, scales = "free",
+#        data = subset(swp[-74, ], pts == 0))
+
+m0 <- lm(form,
+         data = subset(swp[-74, ], pts == 0))
+summary.aov(m0)
+```
+
+Often, two situations occurs
+
+  1. The results are pratically the same for all responses.
+    ```{r, echo = FALSE, comment = NA, results = "hold"}
+    cat(paste("Table of means followed by a Tukey",
+              "test to a 3-level factor in a RBD.\n\n"))
+    tbm
+    ```
+  2. There is not sufficient evidence in each response.
+    ```{r, echo = FALSE, comment = NA, results = "hold"}
+    cat(paste("ANOVA tables for 4 responses in a RBD.\n\n"))
+    summary.aov(m0)
+    ```
+
+<!-- TODO Insert the canonical discrinant analysis figure here. -->
+
+## Some questions
+
+Its is difficult to know
+
+  * Which is the best (set of) variable to measure?
+  * Do the factors influence the response variables in the same way?
+
+Probably, someone asked himself
+
+  * Which variables are more influenced by the factors?
+  * Which variables best indicate the effect of each factor?
+  * Can a new variable be expressed in terms of the measured ones?
+  * How this new variable summarizes all the results?
+
+## Benefits and cautions
+
+  * If the response variables are correlated, we should explore this
+    source of information.
+  * Multivariate models are more powerful to detect the effect of
+    factors if the response variables are correlated.
+  * A more useful or compact description of the results can be obtained.
+  * IMPROVE Encourages a more global conclusion.
+  * New insights and formulations can be done for future research.
+  * BUT:
+    - Its not obvious how to perform a multivariate analysis.
+    - Its not obvious how to interpret their results.
+    - There are less statistical methods available.
+
+## The next topics
+
+  * A brief review of univariate models.
+    * Emphasis on building linear hypothesis test.
+  * The multivariate linear models.
+  * The multivariate hypothesis tests.
+  * Some additional topics.
+  * Conclusion and remarks.
+
+# The univariate linear model
+
+## The model formulation
+
+## A simple example
+
+The `soybean` dataset: 3 x 5 factorial experiment in a randomized block
+design (RBD).  TODO Analysing the yield of grains (`yield`). To make the
+things simpler for now, we subset the data for the potassium level 60.
+
+## The F test
+
+@khuri2009linear
+
+  * In the anova table
+  * As the likelihood ratio test
+  * A Wald test
+
+## General linear hypothesis tests
+
+  * Using the $\mathbf{F}$ matrix.
+
+# References
+
+---
+
+<!-- Insert the refereces right here! -->
+<div id="refs">
+</div>
