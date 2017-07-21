@@ -8,6 +8,7 @@ date: >
   63^a^ RBras & 17^o^ SEAGRO</br>
   July 24--28, 2017</br>
   UFLA, Lavras/MG
+bibliography: ../slides/config/ref.bib
 ---
 
 ```{r, include = FALSE}
@@ -16,8 +17,23 @@ source("../slides/config/_setup.R")
 
 # Data description and objectives
 
-  * TODO
-  * TODO
+The tropical soils, usually poor in potassium (K), demand potassium
+fertilization when cultivated with soybean (*Glycine max* L.) to obtain
+satisfactory yields. The aim of this study was to evaluate the effects
+of K doses (`pts`) and soil humidity (`wtr`) levels on soybean agronomic
+characteristics.
+
+The experiment was carried out in a greenhouse, in pots with two plants,
+containing 5 dm^3^ of soil. The experimental design was completely
+randomized block with treatments in a 5 $\times$ 3 factorial
+arrangement. The K doses were 0; 30; 60, 120 and 180 mg dm^-3^ and the
+soil humidity ranged from 35 to 40; 47.5 to 52.5; and 60 to 65% of the
+total porosity. The responses measured were: grain yield
+(`yield`), weight of a hundred grains (`w100`), total number of grains
+per pot (`tg`), K level in the grain (`Kconc`), number of viable pods
+(`nvp`, `nip` is the inviable pods).
+
+For more information, see @Serafim2012.
 
 ```{r}
 #-----------------------------------------------------------------------
@@ -36,6 +52,9 @@ library(corrplot)
 ```{r}
 #-----------------------------------------------------------------------
 # Multivariate analysis of the soybean dataset.
+
+# Visit to see the online documentation:
+# https://github.com/walmes/wzRfun/blob/master/R/wzRfun.R#L10.
 
 data(soybeanwp, package = "wzRfun")
 str(soybeanwp)
@@ -74,6 +93,60 @@ combineLimits(
                scales = list(y = "free"),
                groups = blk))) +
     layer(panel.xyplot(x = x, y = y, type = "a", col = 1))
+
+#-----------------------------------------------------------------------
+# Potassium 0.
+
+summary(swp)
+
+#--------------------------------------------
+# Condition 1: no sufficient evidence in each response.
+
+options(show.signif.stars = FALSE)
+
+xyplot(yield + tg + w100 + Kconc ~ Wtr,
+       outer = TRUE, scales = "free",
+       data = subset(swp[-74, ], pts == 0))
+
+form <- cbind(yield, tg, w100, Kconc) ~ blk + Wtr
+
+# Rare condictions ().
+m0 <- lm(form, data = subset(swp[-74, ], pts == 0))
+summary.aov(m0)
+
+# anova(m0, test = "Roy")
+
+#--------------------------------------------
+# Condition 2: all the conclusions are quite the same.
+
+xyplot(yield + tg + w100 + Kconc ~ Wtr,
+       outer = TRUE, scales = "free",
+       data = subset(swp[-74, ], pts == 60))
+
+m0 <- lm(form, data = subset(swp[-74, ], pts == 60))
+summary.aov(m0)
+
+library(doBy)
+library(multcomp)
+
+tb <- lapply(c("yield", "tg", "w100", "Kconc"),
+             FUN = function(y) {
+                 m0 <- lm(as.formula(sprintf("%s ~ blk + Wtr", y)),
+                          data = subset(swp[-74, ], pts == 60))
+                 m <- LSmeans(m0, effect = "Wtr")
+                 g <- glht(model = m0, linfct = mcp(Wtr = "Tukey"))
+                 g <- cld(g)$mcletters$Letters
+                 r <- data.frame(Wtr = m$grid$Wtr,
+                                 means = sprintf("%0.2f %s",
+                                                 m$coef[, "estimate"],
+                                                 g[as.character(m$grid$Wtr)]))
+                 names(r)[2] <- y
+                 return(r)
+             })
+
+# Table of means.
+tbm <- Reduce(merge, x = tb)
+tbm
 
 #-----------------------------------------------------------------------
 # Fitting the multivariate Gaussian linear model.
@@ -185,6 +258,12 @@ layout(1)
 # ATTENTION: This requires more study to fully understand.
 #-----------------------------------------------------------------------
 ```
+
+# References
+
+<!-- Insert the refereces right here! -->
+<div id="refs">
+</div>
 
 # Session information
 
