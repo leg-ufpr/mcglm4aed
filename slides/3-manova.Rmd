@@ -141,6 +141,10 @@ Probably, someone asked himself
     - Its not obvious how to interpret their results.
     - There are less statistical methods available.
 
+## Datasets
+
+TODO describe the datasets.
+
 ## The next topics
 
   * A brief review of univariate models.
@@ -152,7 +156,99 @@ Probably, someone asked himself
 
 # The univariate linear model
 
-## The model formulation
+## Model specification
+
+The model for each observation $i = 1, \ldots, n$, is
+$$
+\begin{aligned}
+  y_i &\sim \text{Normal}(\mu_i, \sigma^2)\\
+  \mu_i &= \mathbf{X}_{i.}\boldsymbol{\beta},
+\end{aligned}
+$$
+
+where
+
+  * $y_i$: observed response for the $i$th sample unit.
+  * $\mu_i$: its expected value (mean).
+  * $\sigma^2$: the error variance (non explained variation).
+  * $\mathbf{X}_{i.}$: ($1 \times k$) its row vector of (known)
+    predictor variables.
+  * $\boldsymbol{\beta}$: ($k \times 1$) the regression parameters
+    associated to the predictor variables.
+
+The model written for the response (column) vector is
+$$
+\begin{aligned}
+  \mathbf{y} &=
+    \mathbf{X}\boldsymbol{\beta} + \boldsymbol{\epsilon} \\
+  \boldsymbol{\epsilon} &\sim
+    \text{Normal}_n(\mathbf{0}, \sigma^2 \mathbf{I}) \Rightarrow
+  \epsilon_i \overset{iid}{\sim}
+    \text{Normal}(0, \sigma^2),
+\end{aligned}
+$$
+
+where
+
+  * $\mathbf{y}$: ($n \times 1$) (single) response variable.
+  * $\mathbf{X}$: ($n \times k$) the complete design matrix.
+  * $\boldsymbol{\beta}$: ($k \times 1$) already described.
+  * $\boldsymbol{\epsilon}$: ($n \times 1$) error vector.
+  * $\mathbf{I}$: ($n \times n$) an identity matrix.
+  * $\epsilon_i$: $i$th element of the error vector.
+
+## Likelihood function and estimation
+
+The likelihood function for $\boldsymbol{\beta}$ and $\sigma^2$ is
+
+$$
+\begin{aligned}
+L(\boldsymbol{\beta}, \sigma^2) &=
+  \prod_{i=1}^n \left[
+    (2\pi\sigma^2)^{-1/2}
+      \exp\left\{-\frac{
+        (y_i - \mathbf{X}_{i.}\boldsymbol{\beta})^2}{2\sigma^2}
+      \right\}
+  \right ]\\
+  &=
+  (2\pi\sigma^2)^{-n/2}
+    \exp\left\{-\frac{
+      (\mathbf{y} - \mathbf{X}\boldsymbol{\beta})'
+      (\mathbf{y} - \mathbf{X}\boldsymbol{\beta})}{2\sigma^2}
+    \right\}\\
+  &=
+  (2\pi)^{-n/2} |\sigma^2 \mathbf{I}|^{-1/2}
+    \exp\left\{-\frac{1}{2}
+      (\mathbf{y} - \mathbf{X}\boldsymbol{\beta})'
+       (\sigma^2 \mathbf{I})^{-1}
+      (\mathbf{y} - \mathbf{X}\boldsymbol{\beta})
+    \right\}.
+\end{aligned}
+$$
+
+The MLE estimators are
+
+$$
+\begin{aligned}
+  \boldsymbol{\hat\beta} &=
+    (\mathbf{X}' \mathbf{X})^{-1} \mathbf{X}' \mathbf{y}\\
+  \hat{\sigma}^2 &=
+    (\mathbf{y} - \mathbf{\hat y})'
+    (\mathbf{y} - \mathbf{\hat y})/n,
+      \quad \mathbf{\hat y} = \mathbf{X} \boldsymbol{\hat\beta},\\
+\end{aligned}
+$$
+
+The maximized likelihood is
+
+$$
+\begin{aligned}
+\max_{\beta, \sigma^2} L(\boldsymbol{\beta}, \sigma^2) &=
+    L(\boldsymbol{\hat\beta}, \hat{\sigma}^2) \\
+  &= (2\pi)^{-n/2} (\hat{\sigma}^2)^{-n/2}
+       \exp\left\{-n/2 \right\}.
+\end{aligned}
+$$
 
 ## A simple example
 
@@ -160,17 +256,662 @@ The `soybean` dataset: 3 x 5 factorial experiment in a randomized block
 design (RBD).  TODO Analysing the yield of grains (`yield`). To make the
 things simpler for now, we subset the data for the potassium level 60.
 
-## The F test
+The model, in terms of the sources of variation or effects is
+$$
+  \text{mean}_{ij} = \text{intercept} + \text{BLK}_i + \text{WTR}_j
+$$
+where $i = 1, \ldots, 5;$ and $j = 1, 2, 3;$.
+
+In greek letters notation
+$$
+  \mu_{ij} = \mu_0 + \gamma_i + \eta_j.
+$$
+
+## The $F$ test
+
+The $F$ distribution plays a central role in hypotheses tests for
+univariate Gaussian models.
+
+It can be defined to be distribution of the ratio
+$$
+  \frac{\chi^2_{a}/a}{\chi^2_{b}/b} \sim F_{a;b}
+$$
+when $\chi^2_{a}$ and $\chi^2_{b}$ are independent.
+
+A linear hypothesis can be expressed using different notations:
+
+  * By the common ANOVA indexed notation
+    $$
+      H_0: \eta_j = 0 \text{ for all } j
+      \quad \text{vs} \quad
+      H_a: \eta_j \neq 0 \text{ for some } j.
+    $$
+  * By nested models:
+    $$
+      H_0: \mu_{ij} = \mu_0 + \gamma_i
+        \quad \text{vs} \quad
+      H_a: \mu_{ij} = \mu_0 + \gamma_i + \eta_j.
+    $$
+  * By a matrix of linear hypothesis $\mathbf{A}$:
+    $$
+      H_0: \mathbf{A}\boldsymbol{\beta} = \mathbf{c}
+       \quad \text{vs} \quad
+      H_a: \mathbf{A}\boldsymbol{\beta} \neq \mathbf{c}.
+    $$
+
+<!-- TODO Define the A matrix here! -->
+
+## General linear hypothesis test
+
+Linear hypothesis on $\boldsymbol{\beta}$ can be defined in terms of
+matrices
+$$
+  H_0: \mathbf{A}\boldsymbol{\beta} = \mathbf{c}
+    \quad \text{vs} \quad
+  H_a: \mathbf{A}\boldsymbol{\beta} \neq \mathbf{c},
+$$
+where $\mathbf{A}$ is a known matrix of order $h \times k$ (rank $h \leq
+k$) and $\mathbf{c}$ is a vector of $h$ elements.
+
+For example, lets to construct the $\mathbf{A}$ to test the effect of
+treatments (4 levels) in a randomized block design (3 blocks). The
+expected mean for each $ij$ condition is
+
+$$
+  \mu_{ij} = \mu_0 + \gamma_i + \eta_j.
+$$
+where $i = 1, \ldots, 3;$ and $j = 1, \ldots, 4;$. To generate a full
+rank design matrix, $\gamma_1$ and $\eta_1$ are set to zero.
+
+The $H_0$ states that there is no effect of treatments and can be
+expressed as
+
+```{r, include = FALSE}
+library(xtable)
+
+printbmatrix <- function(x) {
+    cat("\\begin{bmatrix}\n")
+    print(xtable(x),
+          include.rownames = FALSE,
+          include.colnames = FALSE,
+          only.contents = TRUE,
+          hline.after = NULL,
+          sanitize.text.function = identity,
+          comment = FALSE)
+    cat("\\end{bmatrix}\n")
+}
+
+A <- cbind(0, 0, 0, diag(3))
+A[which(A == 1, arr.ind = TRUE)] <- "\\textcolor{red}{1}"
+
+beta <- cbind(c("\\mu_0",
+                sprintf("\\gamma_{%d}", 2:3),
+                sprintf("\\textcolor{red}{\\eta_{%d}}", 2:4)))
+
+c <- cbind(rep(0L, nrow(A)))
+```
+```{r, echo = FALSE, results = "asis"}
+cat("$$\n")
+printbmatrix(A)
+printbmatrix(beta)
+cat(" = ")
+printbmatrix(c)
+cat("\\quad \\Rightarrow \\quad")
+printbmatrix(cbind(beta[grepl(x = beta, pattern = "eta")]))
+cat(" = ")
+printbmatrix(c)
+cat(".")
+cat("$$\n")
+```
+
+This hypothesis, in particular, can be tested by
+
+  * the ANOVA table
+  * the extra sum of squares approach (close connection with likelihood
+ratio principle).
+  * and the Wald test.
+
+---
+
+### Anova table
+
+Consider the ANOVA table based on the reduction in the sum of squares
+approach (sequential ANOVA).
+
+Define as the sum of squares of the reduced model model
+$$
+  \text{RSS}_0 = \text{RSS} + \text{HSS}
+$$
+where $\text{HSS}$ is the treatment sum of squares, that is the sum of
+squares of the term under the hypothesis $H_0$.
+
+```{r, echo = FALSE}
+tabaov <- data.frame(DF = sprintf("$%s$", c("l", "h", "n-k")),
+                     stringsAsFactors = FALSE)
+tabaov$SS <- sprintf("$%s$",
+                     c("R(\\gamma|\\mu_0)",
+                       "\\text{HSS} = R(\\eta|\\gamma,\\mu_0)",
+                       "\\text{RSS}"))
+tabaov$MS <- sprintf("$%s$",
+                     c("\\phantom{0}",
+                       "\\text{HSS}/h",
+                       "\\text{RSS}/(n - k)"))
+tabaov$F <- c("",
+              "$\\frac{\\text{HSS}/h}{\\text{RSS}/(n - k)}$",
+              "")
+rownames(tabaov) <- c("Blocks", "Treatments", "Residuals")
+kable(tabaov, align = "rccc",
+      format = "html",
+      table.attr = "style=\"width: 100%;\"")
+# help(kable, package = "knitr", h = "html")
+```
+
+$$
+
+$$
+
+$$
+F = \frac{\text{HSS}}{\text{RSS}} \cdot \frac{n - k}{h} =
+  \frac{\text{RSS}_0 - \text{RSS}}{\text{RSS}} \cdot \frac{n - k}{h}
+  \sim F_{h; n - k}.
+$$
+
+Note that
+
+---
+
+### The likelihood ratio principle
 
 @khuri2009linear
 
-  * In the anova table
-  * As the likelihood ratio test
-  * A Wald test
+The maximized likelihood for a univariate LM is
+$$
+\begin{aligned}
+\max_{\beta, \sigma^2} L(\boldsymbol{\beta}, \sigma^2) &=
+    L(\boldsymbol{\hat\beta}, \hat{\sigma}^2) \\
+  &= (2\pi)^{-n/2} (\hat{\sigma}^2)^{-n/2}
+       \exp\left\{-n/2 \right\}.
+\end{aligned}
+$$
 
-## General linear hypothesis tests
+The likelihood ratio for two nested models is
+$$
+\begin{align*}
+\Lambda &= \frac{
+  \max_{H_1} L(\textit{full model})}{
+  \max_{H_0} L(\textit{reduced model})}\\
+ &= \frac{
+   L(\boldsymbol{\hat\beta}, \hat{\sigma}^2)}{
+   L(\boldsymbol{\hat\beta}_0, \hat{\sigma}_0^2)}\\
+ &= \left(\frac{\hat{\sigma}^2}{\hat{\sigma}_0^2} \right)^{-n/2}\\
+ &= \left(\frac{n\hat{\sigma}^2 + n(\hat{\sigma}_0^2 - \hat{\sigma}^2)}{
+      n\hat{\sigma}^2}\right)^{n/2}\\
+ &\propto \frac{\text{RSS}_0 - \text{RSS}}{\text{RSS}}
+\end{align*}
+$$
 
-  * Using the $\mathbf{F}$ matrix.
+The deviance
+$$
+   n \log \left(\frac{\hat{\sigma}_0^2}{\hat{\sigma}^2} \right)
+$$
+approximates to $\chi^2_{k - q}$ under $H_0$.
+
+It can be demonstrated that the quantities
+$$
+  \begin{align*}
+  \frac{n(\hat{\sigma}_0^2 - \hat{\sigma}^2)}{\sigma^2} &\sim \chi^2_{h}\\
+  \frac{n\hat{\sigma}^2}{\sigma^2} &\sim \chi^2_{n - k}\\
+  \end{align*}
+$$
+are independent and
+$$
+F = \frac{n(\hat{\sigma}_0^2 - \hat{\sigma}^2)}{
+  n\hat{\sigma}^2}\cdot \frac{n - k}{h} =
+  \frac{\text{RSS}_0 - \text{RSS}}{\text{RSS}} \cdot \frac{n - k}{h}
+  \sim F_{h;n - k}
+$$
+
+```{r, include = FALSE, eval = FALSE}
+# The likelihood ratio follows a \chi^2 under H_0.
+trt <- gl(5, 4)
+n <- length(trt)
+h <- nlevels(trt) - 1
+
+# Simulation.
+X2 <- replicate(1000, {
+    y <- rnorm(n)
+    m1 <- lm(y ~ trt)
+    m0 <- update(m1, . ~ 1)
+    s2_0 <- deviance(m0)/n
+    s2_1 <- deviance(m1)/n
+    X2 <- (n) * log(s2_0/s2_1)
+    return(X2)
+})
+
+# Distribution of the p-values.
+plot(ecdf(pchisq(X2, df = h)))
+segments(0, 0, 1, 1, col = 2)
+```
+
+---
+
+### Wald test
+
+Under $H_0$,
+$$
+\frac{1}{\sigma^2}
+  (\mathbf{A}\boldsymbol{\hat\beta}- \mathbf{c})'
+  [\mathbf{A} (\mathbf{X}'\mathbf{X})^{-1} \mathbf{A}']^{-1}
+  (\mathbf{A}\boldsymbol{\hat\beta}- \mathbf{c})
+  \sim \chi^2_h.
+$$
+Follows that under $H_0$, the statistic
+$$
+\begin{align*}
+F &= \frac{(\mathbf{A}\boldsymbol{\hat\beta}- \mathbf{c})'
+  [\mathbf{A} (\mathbf{X}'\mathbf{X})^{-1} \mathbf{A}']^{-1}
+  (\mathbf{A}\boldsymbol{\hat\beta}- \mathbf{c})}{h\hat{\sigma}^2}\\
+ &= \frac{(\mathbf{A}\boldsymbol{\hat\beta}- \mathbf{c})'
+  [\mathbf{A} \hat{\Sigma}_{\beta} \mathbf{A}']^{-1}
+  (\mathbf{A}\boldsymbol{\hat\beta}- \mathbf{c})}{h},\\
+\end{align*}
+$$
+has the $F$ distribution with $h$ and $n-k$ degress of freedom. The
+matrix $\hat{\Sigma}_{\beta} = \hat{\sigma}^2
+(\mathbf{X}'\mathbf{X})^{-1}$.
+
+In fact, the expected mean squares in the ANOVA table are partitions of
+the regression sum of squares and TODO.
+
+---
+
+IMPROVE
+
+  * Each $F$ statistic is centered in the ideia of how large is the
+    $\text{HSS}$ (evidence against $H_0$) in relation to the
+    $\text{RSS}$.
+  * Anova is a least squares construction based on sum of squares
+    decomposition.
+  * Likelihood is a full parametric construction.
+  * Wald test is a second order approxiation of the likelihood.
+  * They are only coincident for the univariate Gaussian models.
+  * For non gaussian models, they may not produce the same inferences.
+  * Wald only needs $\mathbf{\hat\beta}$ and \mathbf{V}_\beta$ to work.
+
+# Multivariate Linear Models (MLM)
+
+## Model specification
+
+We are now extend the previous notation to consider a vector of $r$
+responses measured in each sample unit.
+
+The model for each sample unit $i = 1, \ldots, n$, is
+$$
+\begin{aligned}
+  \mathbf{Y}_{i.} &\sim \text{Normal}_r(\boldsymbol{\mu}_i, \Sigma)\\
+  \boldsymbol{\mu}_i &= \mathbf{X}_{i.}\boldsymbol{B},
+\end{aligned}
+$$
+
+where
+
+  * $\mathbf{Y}_{i.}$: ($1 \times r$) the observed response vector for
+    the $i$th sample unit.
+  * $\boldsymbol{\mu}_i$: its expected vector (mean).
+  * $\Sigma$: the error covariance between responses (non explained
+    variation).
+  * $\mathbf{X}_{i.}$: ($1 \times k$) its row vector of (known)
+    predictor variables.
+  * $\boldsymbol{B}$: ($k \times r$) the regression parameters matrix
+    associated to the predictor variables and responses.
+
+The model written for the response matrix is
+$$
+\begin{aligned}
+  \mathbf{Y} &=
+    \mathbf{X}\boldsymbol{B} + \boldsymbol{E} \\
+  \boldsymbol{E}_{i.} &\sim
+    \text{Normal}_r(\mathbf{0}, \Sigma)
+\end{aligned}
+$$
+where
+
+  * $\mathbf{Y}$: ($n \times r$) the response matrix.
+  * $\mathbf{X}$: ($n \times k$) the design matrix.
+  * $\boldsymbol{B}$: ($k \times r$) already described.
+  * $\boldsymbol{E}$: ($n \times r$) error matrix.
+  * $\boldsymbol{E}_{i.}$: the $i$th row of the error matrix.
+
+```{r, echo = FALSE, out.width = "90%"}
+knitr::include_graphics("../slides/img/matricial_manova_2.png")
+```
+
+## Likelihood function
+
+The likehood for one sample unit is
+$$
+\begin{aligned}
+  L(\boldsymbol{B},\Sigma,\mathbf{Y}_{i.}) =
+    (2\pi)^{-r/2} |\Sigma|^{-1/2}
+    \exp\left\{
+      -\frac{1}{2}
+      (\mathbf{Y}_{i.} - \mathbf{X}_{i.}\boldsymbol{B})
+       \Sigma^{-1}
+      (\mathbf{Y}_{i.} - \mathbf{X}_{i.}\boldsymbol{B})'
+    \right\}
+\end{aligned}
+$$
+
+For all sample units is
+
+$$
+\begin{aligned}
+  L(\boldsymbol{B},\Sigma,\mathbf{Y}) &= \prod_{i = 1}^n
+    (2\pi)^{-r/2} |\Sigma|^{-1/2}
+    \exp\left\{
+      -\frac{1}{2}
+      (\mathbf{Y}_{i.} - \mathbf{X}_{i.}\boldsymbol{B})
+       \Sigma^{-1}
+      (\mathbf{Y}_{i.} - \mathbf{X}_{i.}\boldsymbol{B})'
+    \right\}\\
+    &= (2\pi)^{-nr/2} |\Sigma|^{-n/2}
+    \exp\left\{
+      -\frac{1}{2} \sum_{i = 1}^n
+      (\mathbf{Y}_{i.} - \mathbf{X}_{i.}\boldsymbol{B})
+       \Sigma^{-1}
+      (\mathbf{Y}_{i.} - \mathbf{X}_{i.}\boldsymbol{B})'
+    \right\}.
+\end{aligned}
+$$
+
+Using the vectorize ($\text{vec}$) operation and kronecker product
+($\otimes$), the observed data can be reshaped from wide to long
+format.
+
+```{r, echo = FALSE, out.width = "90%"}
+knitr::include_graphics("../slides/img/matricial_manova_reshape.png")
+```
+
+The same model is now represented by
+$$
+  \mathcal{Y} \sim
+    \text{Normal}_{rn}(\mathcal{X}\boldsymbol{\beta}, \Omega),
+$$
+where $\Omega = \Sigma \otimes \mathbf{I}$.
+
+```{r, echo = FALSE, out.width = "70%"}
+knitr::include_graphics("../slides/img/matricial_manova_Omega.png")
+```
+
+Also, it can be written as
+$$
+  \mathcal{Y} = \mathcal{X}\boldsymbol{\beta} + \mathcal{E}.
+$$
+
+In the stacked data format, the likelihood function is defined as
+$$
+L(\boldsymbol{\beta}, \Omega) =
+  (2\pi)^{ -\frac{rn}{2} } |\Omega|^{-\frac{1}{2}}
+  \exp \left\{
+    -\frac{1}{2}
+    (\mathcal{Y} - \mathcal{X}\boldsymbol{\beta})^{'}
+    \Omega^{-1}
+    (\mathcal{Y} - \mathcal{X}\boldsymbol{\beta})
+  \right\}.
+$$
+
+The maximized likelihood is
+$$
+\begin{align*}
+L(\boldsymbol{\hat\beta}, \hat\Omega)
+ &= (2\pi)^{-rn/2} |\hat\Sigma \otimes \mathbf{I}|^{-1/2}
+  \exp \left\{
+    -\frac{rn}{2}
+  \right\}\\
+ &= (2\pi)^{-rn/2} |\hat\Sigma|^{-n/2}
+  \exp \left\{
+    -\frac{rn}{2}
+  \right\}.
+\end{align*}
+$$
+
+## Estimation and properties
+
+$$
+\begin{align*}
+{\boldsymbol{\hat B}} &=
+  (\mathbf{X}'\mathbf{X})^{-1}\mathbf{X}'\mathbf{Y}\\
+{\boldsymbol{\hat B}}_{.j} &=
+  (\mathbf{X}'\mathbf{X})^{-1}\mathbf{X}'\mathbf{Y}_{.j}\\
+{\boldsymbol{\hat \beta}} &=
+  (\mathcal{X}'\mathcal{X})^{-1}\mathcal{X}'\mathcal{Y}\\
+\text{Cov}({\boldsymbol{\hat\beta}}) &=
+  {\hat\Sigma} \otimes
+  (\mathbf{X}'\mathbf{X})^{-1}
+  = \begin{bmatrix}
+    \hat{\sigma}_{11}(\mathbf{X}'\mathbf{X})^{-1} &
+    \cdots &
+    \hat{\sigma}_{1r}(\mathbf{X}'\mathbf{X})^{-1} \\
+    \vdots & \ddots & \vdots \\
+    \hat{\sigma}_{r1}(\mathbf{X}'\mathbf{X})^{-1} &
+    \cdots &
+    \hat{\sigma}_{rr}(\mathbf{X}'\mathbf{X})^{-1}
+    \end{bmatrix}
+\end{align*}
+$$
+
+## Hypotheses tests on $\boldsymbol{B}$ or $\boldsymbol{\beta}$
+
+A linear hypothesis can be defined in two equivalent ways.
+
+$$
+H_0: \mathbf{A}\boldsymbol{B}\mathbf{M} = \mathbf{C}
+  \quad \textrm{vs} \quad
+H_1: \mathbf{A}\boldsymbol{B}\mathbf{M} \neq \mathbf{C}
+$$
+
+where
+
+  * $\mathbf{A}$ is a $h \times k$ ($h = \text{rank}(\mathbf{A}) < k$)
+    matrix.
+  * $\boldsymbol{B}$ is the $k \times r$ parameter matrix.
+  * $\mathbf{M}$ is a $r \times v$ ($v \leq r$) matrix of linear
+    hypothesis on the responses. The most common scenario is when
+    $\boldsymbol{M} = \boldsymbol{I}_r$.
+  * $\mathbf{C}$ is a $h \times v$ matrix.
+
+Example of $\mathbf{A}\boldsymbol{B}\mathbf{M} = \mathbf{C}$ to test
+$H_0: \eta_{mj} = 0$ for all $mj$, $m = 1, 2; j = 2, \ldots, 4$. These
+matrices are
+
+```{r, include = FALSE}
+A <- cbind(0, 0, 0, diag(3))
+A[which(A == 1, arr.ind = TRUE)] <- "\\textcolor{red}{1}"
+
+i <- c(0, 2:3, 2:4)
+r <- 1:2
+index <- expand.grid(i = i,
+                     r = r,
+                     KEEP.OUT.ATTRS = FALSE)
+beta <- rep(c("\\mu_{%d%d}",
+              "\\gamma_{%d%d}",
+              "\\textcolor{red}{\\eta_{%d%d}}"),
+            times = c(1, 2, 3))
+beta <- sprintf(beta, index[, 2], index[, 1])
+beta <- matrix(beta, length(i), length(r))
+
+M <- diag(rep(1L, ncol(beta)))
+C <- matrix(0L, nrow(A), ncol(beta))
+```
+```{r, echo = FALSE, results = "asis"}
+cat("$$\n")
+cat("\\begin{align*}\n")
+printbmatrix(A)
+printbmatrix(beta)
+printbmatrix(M)
+cat(" &= ")
+printbmatrix(C)
+cat("\\\\")
+cat("\\Rightarrow")
+printbmatrix(cbind(beta[grepl(x = beta[, 1], pattern = "eta"), ]))
+cat(" &= ")
+printbmatrix(C)
+cat(".")
+cat("\\end{align*}\n")
+cat("$$\n")
+```
+
+The same linear hypothesis can be represented in using the vectorized
+form of $\boldsymbol{B}$, $\boldsymbol{\beta}$
+
+$$
+H_0: \mathbf{L}\boldsymbol{\beta} = \mathbf{c}
+  \quad \textrm{vs} \quad
+H_1: \mathbf{L}\boldsymbol{\beta} \neq \mathbf{c}
+$$
+
+where
+
+  * $\mathbf{L} = \mathbf{M}' \otimes \mathbf{A}$ is a $rh \times vk$
+    matrix.
+  * $\boldsymbol{\beta}$ is the $rk \times 1$ parameter vector.
+  * $\mathbf{c}$ is a $rv \times 1$ vector.
+
+```{r, echo = FALSE, results = "asis"}
+A <- cbind(0, 0, 0, diag(3))
+L <- kronecker(t(M), A)
+L[which(L == 1, arr.ind = TRUE)] <- "\\textcolor{red}{1}"
+beta <- cbind(c(beta))
+
+cat("$$\n")
+printbmatrix(L)
+printbmatrix(beta)
+cat(" = ")
+printbmatrix(cbind(c(C)))
+cat(".")
+cat("$$\n")
+```
+
+---
+
+Let $\mathbf{R}$ be the residual sum of squares and cross products
+(SSP) of the full model
+$$
+  \mathbf{R} = (\mathbf{Y} - \mathbf{X}\boldsymbol{\hat{B}})'
+    (\mathbf{Y} - \mathbf{X}\boldsymbol{\hat{B}}).
+$$
+
+Defines $\mathbf{H}$ as the hypothesis SSP matrix,
+$$
+\begin{align*}
+  \mathbf{H}
+      &= n(\hat{\Sigma}_0 - \hat{\Sigma})\\
+      &= (\mathbf{A}\boldsymbol{\hat{B}}\mathbf{M} - \mathbf{C})'
+    [\mathbf{A} (\mathbf{X}'\mathbf{X})^{-1} \mathbf{A}']^{-1}
+         (\mathbf{A}\boldsymbol{\hat{B}}\mathbf{M} - \mathbf{C}),
+\end{align*}
+$$
+
+The statistic
+$$
+  \text{tr} (\mathbf{H}\mathbf{R}^{-1}) = \sum_{i = 1}^{s} \lambda_i
+$$
+is known as *Hotteling-Lawley trace*. The values $\lambda_1 \geq
+\lambda_2 \geq \ldots \lambda_s$ are the nonzero eigen values of
+$\mathbf{H}\mathbf{R}^{-1}$.
+
+@Berndt1977 show that the same value is obtained as the result of a Wald
+test using the vectorized version of the components
+
+$$
+\text{tr} (\mathbf{H}\mathbf{R}^{-1}) =
+(\mathbf{L} \boldsymbol{\hat\beta} - \mathbf{c})'
+  [\mathbf{L} (
+    (\mathbf{M}' \mathbf{R} \mathbf{M}) \otimes
+    (\mathbf{X}'\mathbf{X})^{-1})
+   \mathbf{L}']^{-1}
+  (\mathbf{L} \boldsymbol{\hat\beta} - \mathbf{c}).
+$$
+
+Under $H_0$, the statistic
+$$
+  n \text{tr} (\mathbf{H}\mathbf{R}^{-1}),
+$$
+has a limiting $\chi^2$ distribution with $vh$ degrees of freedom.
+
+---
+
+A test based on the likelihood ratio is written in terms of generalized
+variances
+$$
+\begin{align*}
+  \Lambda
+   &= \frac{\max_{H_0} L(\beta, \Sigma)}{\max L(\beta, \Sigma)} \\
+   &= \left(\frac{|\hat{\Sigma}_0|}{|\hat{\Sigma}|}\right)^{-n/2},\\
+\end{align*}
+$$
+and the *Wilks' statistic* is
+$$
+  \Lambda^{2/n} = \frac{|\hat{\Sigma}|}{|\hat{\Sigma}_0|}.
+$$
+
+Under $H_0$, $n\hat{\Sigma} \sim W_{r;n-k}$ independently
+of $n(\hat{\Sigma}_0 - \hat{\Sigma}) \sim W_{r;h}$. The likelihood ratio
+test of $H_0$ is equivalent to reject $H_0$ for large values of the
+deviance
+$$
+  -2 \log \Lambda =
+    -n \log
+      \left(
+      \frac{|n\hat{\Sigma}|}{
+        |n\hat{\Sigma} + n(\hat{\Sigma}_0 - \hat{\Sigma})|}
+      \right).
+$$
+
+Under $H_0$, the above statistic has a limiting $\chi^2$ distribution
+with $vh$ degrees of freedom.
+
+## The four multivariate hypothesis tests
+
+For the same hypothesis, there are four multivariate tests.
+
+$$
+\begin{align*}
+\text{Wilk's lambda}
+  &= \frac{|\mathbf{R}|}{|\mathbf{R} + \mathbf{H}|}
+   = \prod_{i=1}^s \frac{1}{1+\lambda_i}\\
+\text{Hotelling-Lawley trace}
+  &= \text{tr}(\mathbf{H}\mathbf{R}^{-1})
+   = \sum_{i=1}^s \lambda_i\\
+\text{Pillai's trace}
+  &= \text{tr}(\mathbf{H}(\mathbf{H} + \mathbf{R})^{-1})
+   = \sum_{i=1}^s \frac{\lambda_i}{1+\lambda_i}\\
+\text{Roy's greatest root}
+  &= \max(\lambda_1,\ldots,\lambda_s) = \lambda_1
+\end{align*}
+$$
+
+```{r, echo = FALSE, out.width = "60%"}
+knitr::include_graphics("../slides/img/the-four-kings-2.jpg")
+```
+
+We did a small simulation study to access the limiting $\chi^2$ and $F$
+approximation for each of this tests.
+
+---
+
+IMPROVE
+
+  * They differ in the way they seek for evidence against the null
+    hypothesis.
+  * Some general recommendations are:
+    * Ray is the most powerful if.
+    * Pillai is the default because it is robust.
+    * Wilks is appealing because is a LRT.
+    * Hotteling-Lawley can be directlty applied for non gaussian
+      contexts.
+
+## Examples
 
 # References
 
