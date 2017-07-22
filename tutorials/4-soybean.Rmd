@@ -37,7 +37,7 @@ per pot (`tg`), K level in the grain (`Kconc`), number of viable pods
 
 For more information, see @Serafim2012.
 
-```{r}
+```{r, message = FALSE}
 #-----------------------------------------------------------------------
 # Packages.
 
@@ -47,6 +47,8 @@ library(latticeExtra)
 library(car)
 library(candisc)
 library(corrplot)
+library(doBy)
+library(multcomp)
 ```
 
 # MLM for the soybean dataset
@@ -96,62 +98,286 @@ combineLimits(
                groups = blk))) +
     layer(panel.xyplot(x = x, y = y, type = "a", col = 1))
 
-#-----------------------------------------------------------------------
-# Potassium 0.
-
+# Data summaries.
 summary(swp)
+```
 
-#--------------------------------------------
+## Analysing the subset for potassium equals 0
+
+```{r}
+#-----------------------------------------------------------------------
 # Condition 1: no sufficient evidence in each response.
 
-options(show.signif.stars = FALSE)
+# Subsetting the dataset.
+da <- subset(swp[-74, ], pts == 0)
 
-xyplot(yield + tg + w100 + Kconc ~ Wtr,
-       outer = TRUE, scales = "free",
-       data = subset(swp[-74, ], pts == 0))
+xtabs(~blk + Wtr, data = da)
 
-form <- cbind(yield, tg, w100, Kconc) ~ blk + Wtr
+xyplot(yield + tg + w100 + Kconc + pvp ~ wtr,
+       outer = TRUE,
+       scales = "free",
+       type = c("p", "a"),
+       data = da)
 
-# Rare condictions ().
-m0 <- lm(form, data = subset(swp[-74, ], pts == 0))
+splom(~da[c(4:7, 12)],
+      data = da,
+      groups = Wtr,
+      as.matrix = TRUE)
+
+# `Wtr` is a 3 level categorical factor.
+m0 <- lm(cbind(yield, tg, w100, Kconc, pvp) ~ blk + Wtr,
+         data = da)
+
+# Separated anovas.
 summary.aov(m0)
 
-# anova(m0, test = "Roy")
+# Multivariate anova.
+Anova(m0)
+Anova(m0, test = "Roy")
 
-#--------------------------------------------
-# Condition 2: all the conclusions are quite the same.
+#-----------------------------------------------------------------------
+# Residuals.
 
-xyplot(yield + tg + w100 + Kconc ~ Wtr,
-       outer = TRUE, scales = "free",
-       data = subset(swp[-74, ], pts == 60))
+# Raw residuals.
+r <- residuals(m0)
+cor(r)
 
-m0 <- lm(form, data = subset(swp[-74, ], pts == 60))
-summary.aov(m0)
+# Change the 3rd color of the palette used for the ellipses.
+oldpal <- palette()
+palette(c("black", "blue", "red"))
+scatterplotMatrix(r,
+                  gap = 0,
+                  smooth = FALSE,
+                  reg.line = FALSE,
+                  ellipse = TRUE,
+                  diagonal = "qqplot")
+palette(oldpal)
 
-library(doBy)
-library(multcomp)
+corrplot(cor(r),
+         type = "upper",
+         tl.pos = "d",
+         outline = TRUE,
+         method = "ellipse")
 
-tb <- lapply(c("yield", "tg", "w100", "Kconc"),
+#-----------------------------------------------------------------------
+
+# `wtr` is a 3 level numerical factor.
+m1 <- update(m0, . ~ blk + wtr + I(wtr^2))
+
+# Separated anovas.
+summary.aov(m1)
+
+# Multivariate anova.
+anova(m1) # Sequential (more appropriate for the current case).
+Anova(m1) # Marginal.
+
+anova(m1, test = "Roy") # Sequential (more appropriate ...).
+Anova(m1, test = "Roy") # Marginal.
+
+# NOTE: Univariate and Multivariate in disagreement! The way of
+# representing the factors (numerical or categorical) is important. BUT
+# in this case, the difference is due the type of hypothesis display
+# (type I, II or III).
+
+#-----------------------------------------------------------------------
+# Performing univariate analysis.
+
+tb <- lapply(c("yield", "tg", "w100", "Kconc", "pvp"),
              FUN = function(y) {
                  m0 <- lm(as.formula(sprintf("%s ~ blk + Wtr", y)),
-                          data = subset(swp[-74, ], pts == 60))
-                 m <- LSmeans(m0, effect = "Wtr")
-                 g <- glht(model = m0, linfct = mcp(Wtr = "Tukey"))
-                 g <- cld(g)$mcletters$Letters
-                 r <- data.frame(Wtr = m$grid$Wtr,
-                                 means = sprintf("%0.2f %s",
-                                                 m$coef[, "estimate"],
-                                                 g[as.character(m$grid$Wtr)]))
+                          data = da)
+                 m <- LSmeans(m0,
+                              effect = "Wtr")
+                 g <- glht(model = m0,
+                           linfct = mcp(Wtr = "Tukey"))
+                 g <- cld(g, decreasing = TRUE)$mcletters$Letters
+                 r <- data.frame(
+                     Wtr = m$grid$Wtr,
+                     means = sprintf("%0.2f %s",
+                                     m$coef[, "estimate"],
+                                     g[as.character(m$grid$Wtr)]))
                  names(r)[2] <- y
                  return(r)
              })
 
-# Table of means.
+# Table of means (recursive merging to put the results together).
 tbm <- Reduce(merge, x = tb)
 tbm
 
 #-----------------------------------------------------------------------
+# Canonical discriminant analysis.
+
+cd_W <- candisc(m0, term = "Wtr")
+cd_W
+
+summary(cd_W)
+
+# The weights to compute the scores.
+cd_W$coeffs.raw
+
+# The scores.
+head(cd_W$scores)
+
+# Calculating the scores (with the centered y-variables).
+Y <- m0$model[[1]]
+z <- scale(Y, scale = FALSE) %*% cd_W$coeffs.raw
+
+head(z[, 1:2])
+head(cd_W$scores[, c("Can1", "Can2")])
+
+# The loadings are the correlations between scores and responses.
+cd_W$structure
+cor(cbind(Y, z))[colnames(Y), colnames(z)]
+
+# The biplot.
+plot(cd_W)
+```
+
+## Analysing the subset for potassium equals 120
+
+```{r}
+#-----------------------------------------------------------------------
+# Condition 2: results are similar for sets of responses.
+
+# Subsetting the dataset.
+da <- subset(swp[-74, ], pts == 120)
+
+xtabs(~blk + Wtr, data = da)
+
+xyplot(yield + tg + w100 + Kconc + pvp ~ wtr,
+       outer = TRUE,
+       scales = "free",
+       type = c("p", "a"),
+       data = da)
+
+splom(~da[c(4:7, 12)],
+      data = da,
+      groups = Wtr,
+      as.matrix = TRUE)
+
+# `Wtr` is a 3 level categorical factor.
+m0 <- lm(cbind(yield, tg, w100, Kconc, pvp) ~ blk + Wtr,
+         data = da)
+
+# Separated anovas.
+summary.aov(m0)
+
+# Multivariate anova.
+Anova(m0)
+Anova(m0, test = "Roy")
+
+#-----------------------------------------------------------------------
+# Residuals.
+
+# Raw residuals.
+r <- residuals(m0)
+cor(r)
+
+# Change the 3rd color of the palette used for the ellipses.
+oldpal <- palette()
+palette(c("black", "blue", "red"))
+scatterplotMatrix(r,
+                  gap = 0,
+                  smooth = FALSE,
+                  reg.line = FALSE,
+                  ellipse = TRUE,
+                  diagonal = "qqplot")
+palette(oldpal)
+
+corrplot(cor(r),
+         type = "upper",
+         tl.pos = "d",
+         outline = TRUE,
+         method = "ellipse")
+
+#-----------------------------------------------------------------------
+
+# `wtr` is a 3 level numerical factor.
+m1 <- lm(cbind(yield, tg, w100, Kconc, pvp) ~ blk + wtr + I(wtr^2),
+         data = da)
+
+# Multivariate anova.
+anova(m1) # Sequential (more appropriate for the current case).
+Anova(m1) # Marginal.
+
+anova(m1, test = "Roy") # Sequential (more appropriate ...).
+Anova(m1, test = "Roy") # Marginal.
+
+# NOTE: Univariate and Multivariate in disagreement! The way of
+# representing the factors (numerical or categorical) is important. BUT
+# in this case, the difference is due the type of hypothesis display
+# (type I, II or III).
+
+#-----------------------------------------------------------------------
+# Performing univariate analysis.
+
+tb <- lapply(c("yield", "tg", "w100", "Kconc", "pvp"),
+             FUN = function(y) {
+                 m0 <- lm(as.formula(sprintf("%s ~ blk + Wtr", y)),
+                          data = da)
+                 m <- LSmeans(m0,
+                              effect = "Wtr")
+                 g <- glht(model = m0,
+                           linfct = mcp(Wtr = "Tukey"))
+                 g <- cld(g, decreasing = TRUE)$mcletters$Letters
+                 r <- data.frame(
+                     Wtr = m$grid$Wtr,
+                     means = sprintf("%0.2f %s",
+                                     m$coef[, "estimate"],
+                                     g[as.character(m$grid$Wtr)]))
+                 names(r)[2] <- y
+                 return(r)
+             })
+
+# Table of means (recursive merging to put the results together).
+tbm <- Reduce(merge, x = tb)
+tbm
+
+#-----------------------------------------------------------------------
+# Canonical discriminant analysis.
+
+cd_W <- candisc(m0, term = "Wtr")
+cd_W
+
+summary(cd_W)
+
+# The weights to compute the scores.
+cd_W$coeffs.raw
+
+# The scores.
+head(cd_W$scores)
+
+# Calculating the scores (with the centered y-variables).
+Y <- m0$model[[1]]
+z <- scale(Y, scale = FALSE) %*% cd_W$coeffs.raw
+
+head(z[, 1:2])
+head(cd_W$scores[, c("Can1", "Can2")])
+
+# The loadings are the correlations between scores and responses.
+cd_W$structure
+cor(cbind(Y, z))[colnames(Y), colnames(z)]
+
+# The biplot.
+plot(cd_W)
+```
+
+## Analysing the entire `soybeanwp` dataset
+
+```{r}
+#----------------------------------------------------------------------
 # Fitting the multivariate Gaussian linear model.
+
+xyplot(yield + tg + w100 + Kconc + pvp ~ pts,
+       groups = Wtr,
+       auto.key = TRUE,
+       type = c("p", "a"),
+       outer = TRUE,
+       as.table = TRUE,
+       data = swp[-74, ],
+       xlab = "Potassium",
+       ylab = "Values",
+       scales = list(y = "free"))
 
 m0 <- lm(cbind(yield, tg, w100, Kconc, pvp) ~ blk + Wtr * Pts,
          data = swp[-74, ])
@@ -195,21 +421,32 @@ corrplot(cor(r),
 
 cd_WP <- candisc(m0, term = "Wtr:Pts")
 cd_WP
-cd_WP$coeffs.raw
+
+# Correlations between responses and canonical scores.
+cd_WP$structure
+
+# Canonical scores.
 head(cd_WP$scores)
+
+# Biplot.
 plot(cd_WP)
 
-cd_P <- candisc(m0, term = "Pts")
-cd_P
-cd_P$coeffs.raw
-head(cd_P$scores)
-plot(cd_P)
+# Merge the responses with the scores.
+swps <- merge(swp, cd_WP$scores)
 
-cd_W <- candisc(m0, term = "Wtr")
-cd_W
-cd_W$coeffs.raw
-head(cd_W$scores)
-plot(cd_W)
+xyplot(-Can2 ~ -Can1 | Wtr,
+       groups = Pts,
+       auto.key = TRUE,
+       data = swps) +
+    glayer(panel.ellipse(...))
+
+xyplot(-Can1 + -Can2 + yield + tg + w100 + Kconc ~ Pts,
+       groups = Wtr,
+       outer = TRUE,
+       scales = list(y = "free"),
+       as.table = TRUE,
+       data = swps,
+       type = c("p", "a"))
 ```
 
 ```{r eval = FALSE, include = FALSE}
@@ -260,6 +497,10 @@ layout(1)
 # ATTENTION: This requires more study to fully understand.
 #-----------------------------------------------------------------------
 ```
+
+# Using the `mcglm` package
+
+TODO
 
 # References
 
