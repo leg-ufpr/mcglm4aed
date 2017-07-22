@@ -5,10 +5,13 @@ author: |
   | Wagner H. Bonat   | Walmes M. Zeviani |
   |:-----------------:|:-----------------:|
   | `wbonat@ufpr.br`  | `walmes@ufpr.br`  |
+  |  LEG/DEST/UFPR    |  LEG/DEST/UFPR    |
 date: >
   62^a^ RBras & 17^o^ SEAGRO</br>
   July 24--28, 2017</br>
   UFLA, Lavras/MG
+bibliography: ../slides/config/ref.bib
+csl: ../slides/config/elsevier-harvard.csl
 ---
 
 # Motivational data sets
