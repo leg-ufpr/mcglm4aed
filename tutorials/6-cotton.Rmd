@@ -1,10 +1,9 @@
 ---
 title: "Defoliation and growth stage on the cotton production"
 author: |
-  | Wagner H. Bonat   | Walmes M. Zeviani |
-  |:-----------------:|:-----------------:|
-  | `wbonat@ufpr.br`  | `walmes@ufpr.br`  |
-  |  LEG/DEST/UFPR    |  LEG/DEST/UFPR    |
+  ```{r, echo = FALSE, results = "asis"}
+  source("../slides/config/yaml-authors.R", print.eval = TRUE)
+  ```
 date: >
   62^a^ RBras & 17^o^ SEAGRO</br>
   July 24--28, 2017</br>
@@ -41,7 +40,7 @@ subdispersed count variable.
 #-----------------------------------------------------------------------
 # Packages.
 
-rm(list = ls())
+# rm(list = ls())
 library(lattice)
 library(latticeExtra)
 library(gridExtra)
@@ -201,9 +200,14 @@ source("../review/functions.R")
 
 # References
 
-<!-- Insert the refereces right here! -->
-<div id="refs">
-</div>
+```{r, echo = FALSE, results = "asis", message = FALSE, warning = FALSE, error = FALSE}
+if (knitr::opts_knit$get("rmarkdown.pandoc.to") == "html") {
+    cat('<!-- Insert the refereces right here! -->',
+        '<div id="refs">',
+        '</div>\n',
+        sep = "\n")
+}
+```
 
 # Session information
 

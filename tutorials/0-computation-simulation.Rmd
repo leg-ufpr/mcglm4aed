@@ -1,10 +1,9 @@
 ---
 title: "Computation and simulation study"
 author: |
-  | Wagner H. Bonat   | Walmes M. Zeviani |
-  |:-----------------:|:-----------------:|
-  | `wbonat@ufpr.br`  | `walmes@ufpr.br`  |
-  |  LEG/DEST/UFPR    |  LEG/DEST/UFPR    |
+  ```{r, echo = FALSE, results = "asis"}
+  source("../slides/config/yaml-authors.R", print.eval = TRUE)
+  ```
 date: >
   62^a^ RBras & 17^o^ SEAGRO</br>
   July 24--28, 2017</br>
@@ -546,9 +545,14 @@ tr(H %*% solve(R))
 
 # References
 
-<!-- Insert the refereces right here! -->
-<div id="refs">
-</div>
+```{r, echo = FALSE, results = "asis", message = FALSE, warning = FALSE, error = FALSE}
+if (knitr::opts_knit$get("rmarkdown.pandoc.to") == "html") {
+    cat('<!-- Insert the refereces right here! -->',
+        '<div id="refs">',
+        '</div>\n',
+        sep = "\n")
+}
+```
 
 # Session information
 
