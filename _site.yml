@@ -1,6 +1,6 @@
 name: "mcglm4aed"
 #output_dir: "."
-output_dir: "_site"
+output_dir: "."
 exclude: ["*.pdf", "review", "README.md", "datasets.md", "README.html", "datasets.html"]
 navbar:
   title: "mcglm4aed"
