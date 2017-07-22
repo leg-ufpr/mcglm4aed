@@ -19,8 +19,31 @@ source("../slides/config/_setup.R")
 
 # Data description and objectives
 
-  * TODO
-  * TODO
+The dataset contains the values of chemical variables of 3 layers of the
+soil in 50 sites cultivated with teak (*Tectona grandis*). The study was
+carried out in 2015, in Teca plantations belonging to two farms located
+in the Western Region of the State of Mato Grosso. The selection of
+study areas within the farms was done by means of free walking, covering
+the entire cultivated area of 1869 ha, making field observations and
+delimiting plots within the stands from the characteristics of the
+soils, position in the landscape and development of culture. Fifty plots
+with 600 m^2^ (20 x 30 m) each were allocated. As a selection criterion,
+only fields with an area of more than seven hectares (7 ha) were
+selected, using only the areas with the same planting density,
+management practices aged 13-14 years.
+
+The objective of the study is to conduct a profile analysis to verify if
+there is a general pattern of cation concentration (K^+^, Ca^2+^ and
+Mg^2+^) in the soil layers.
+
+This dataset is part of data base with more tables (`teca_arv`,
+`teca_crapar`, `teca_cra`, `teca_gran` and `teca_qui`). These data are
+available on the package `EACS`
+(http://leg.ufpr.br/~walmes/pacotes/EACS/index.html). Please do not use
+datasets without the researchers' permission because the results of
+these researches are being submitted to journals at the moment. If you
+want to use the data to propose statistical methodologies, contact the
+researchers as well.
 
 # Analysis with the multivariate linear model (MLM)
 
@@ -237,7 +260,8 @@ linearHypothesis(m0,
 ```{r}
 #-----------------------------------------------------------------------
 # The univariate regression model assumes independent observations
-# inside each location (a strong assumption in this case).
+# (between responses and between soil layers) inside each location (a
+# strong assumption in this case).
 
 an0 <- lm(value ~ res * cam, data = tecal)
 anova(an0)
