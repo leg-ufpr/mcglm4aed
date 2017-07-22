@@ -1,22 +1,207 @@
 ---
-title: "Simulation study"
+title: "Computation and simulation study"
 author: |
   | Wagner H. Bonat   | Walmes M. Zeviani |
   |:-----------------:|:-----------------:|
   | `wbonat@ufpr.br`  | `walmes@ufpr.br`  |
+  |  LEG/DEST/UFPR    |  LEG/DEST/UFPR    |
 date: >
-  63^a^ RBras & 17^o^ SEAGRO</br>
+  62^a^ RBras & 17^o^ SEAGRO</br>
   July 24--28, 2017</br>
   UFLA, Lavras/MG
+bibliography: ../slides/config/ref.bib
+csl: ../slides/config/elsevier-harvard.csl
 ---
+
+# Fitting the MANOVA model using `lm()`
+
+The data used below is from @pimentelgomes2002, tabel 10.2.1, page 254.
+The measured responses are the content of nitrogen (`y1`) and phosphorus
+(`y2`) in plants fertilized in pots. The experiment was installed in a
+complete randomized design.
+
+```{r, include = FALSE}
+source("../slides/config/_setup.R")
+# opts_chunk$set(eval = FALSE)
+```
+```{r}
+#-----------------------------------------------------------------------
+# Packages.
+
+library(lattice)
+library(latticeExtra)
+
+#-----------------------------------------------------------------------
+# Pimentel Gomes, page 254.
+
+da <- expand.grid(rep = 1:5,
+                  trt = gl(3, 1,
+                           labels = c("Test", "TurFer", "TurNat")),
+                  KEEP.OUT.ATTRS = TRUE)
+da <- transform(da,
+                y1 = c(463, 438, 494, 496, 448, 603, 596, 616, 633,
+                       608, 471, 481, 449, 443, 456)/100,
+                y2 = c(950, 890, 1010, 1230, 940, 1080, 1050, 1080,
+                       1190, 1080, 960, 930, 870, 820, 910)/1000)
+str(da)
+
+# ATTENTION: This is a toy example, small dataset easy to handle.
+xyplot(y2 ~ y1,
+       groups = trt,
+       auto.key = list(columns = 3,
+                       title = "Treatments",
+                       cex.title = 1),
+       data = da,
+       grid = TRUE) +
+    glayer(panel.ellipse(...))
+
+# Fitting the manova model (full model).
+m_full <- lm(cbind(y1, y2) ~ trt, data = da)
+
+# Summaries for separated univariate models.
+summary(m_full)
+
+# Separated ANOVA tables.
+summary.aov(m_full)
+
+# MANOVA table.
+anova(m_full)
+
+# Estimated parameters.
+coef(m_full)
+
+# Estimated covariance matrix (least squares).
+var(residuals(m_full))
+
+# Null model.
+m_null <- update(m_full, . ~ 1)
+```
+
+# Calculating the statistics of the four MANOVA tests
+
+```{r}
+#-----------------------------------------------------------------------
+# Doing the math.
+
+# Error SSP of the full model.
+E_full <- crossprod(residuals(m_full))
+E_full
+
+# Error SSP of the null model.
+E_null <- crossprod(residuals(m_null))
+E_null
+
+# Extra error SSP = SSPnull - SSPfull.
+E_extr <- E_null - E_full
+E_extr
+
+# Eigen values of the R^{-1} H.
+lambdas <- eigen(solve(E_full, E_extr))$values
+
+# Wilks' lambda.
+det(E_full)/det(E_full + E_extr)
+1/prod(1 + lambdas)
+anova(m_full, test = "Wilks")
+
+# Roy's largest root.
+lambdas[1]
+anova(m_full, test = "Roy")
+
+# Hotelling-Lawley trace (Wald).
+sum(diag(solve(E_full, E_extr)))
+sum(lambdas)
+anova(m_full, test = "Hotelling-Lawley")
+
+# Pillai's trace.
+sum(diag(E_extr %*% solve(E_extr + E_full)))
+sum(lambdas/(1 + lambdas))
+anova(m_full, test = "Pillai")
+```
+
+# A minimal of matrix algebra
+
+```{r}
+#-----------------------------------------------------------------------
+# Calculating using matricial algebra.
+
+# Matrix of responses.
+Y <- as.matrix(da[, c("y1", "y2")])
+
+# Total SSP = Y'Y.
+t(Y) %*% Y
+
+# Design matrix (full model).
+X <- model.matrix(~trt, data = da)
+dim(X)
+
+# Estimation of the model parameters.
+XlX <- crossprod(X)
+XlY <- crossprod(X, Y)
+B <- solve(XlX, XlY)
+B
+
+# Just to confirm.
+coef(m_full)
+
+# To create projection matrices.
+proj <- function(X) {
+    tX <- t(X)
+    X %*% solve(tX %*% X) %*% tX
+}
+
+# Projection (hat) matrix for the full model.
+Hfull <- proj(X)
+
+# Projection (hat) matrix for the null model.
+Hnull <- proj(X[, 1])
+
+# Identity.
+I <- diag(nrow(X))
+
+# Error SSP of the full model.
+E_full <- t(Y) %*% (I - Hfull) %*% Y
+E_full
+
+# Error SSP of the null model.
+E_null <- t(Y) %*% (I - Hnull) %*% Y
+E_null
+
+# Extra error SSP.
+E_extr <- t(Y) %*% (Hfull - Hnull) %*% Y
+E_extr
+
+# Eigen values of the R^{-1} H.
+lambdas <- eigen(solve(E_full, E_extr))$values
+
+# Wilks' lambda.
+det(E_full)/det(E_full + E_extr)
+1/prod(1 + lambdas)
+anova(m_full, test = "Wilks")
+
+# Roy's largest root.
+lambdas[1]
+anova(m_full, test = "Roy")
+
+# Hotelling-Lawley trace (Wald).
+sum(diag(solve(E_full, E_extr)))
+sum(lambdas)
+anova(m_full, test = "Hotelling-Lawley")
+
+# Pillai's trace.
+sum(diag(E_extr %*% solve(E_extr + E_full)))
+sum(lambdas/(1 + lambdas))
+anova(m_full, test = "Pillai")
+
+# ATTENTION: models with more than one term, a QR decomposition of the X
+# design matrix can be used.
+
+#-----------------------------------------------------------------------
+```
 
 # The $\chi^2$ asymptotics
 
 ## Function prototyping
 
-```{r, include = FALSE}
-source("../slides/config/_setup.R")
-```
 ```{r}
 #-----------------------------------------------------------------------
 # Packages.
@@ -24,10 +209,6 @@ source("../slides/config/_setup.R")
 rm(list = ls())
 
 library(mvtnorm)
-library(latticeExtra)
-
-#-----------------------------------------------------------------------
-# The Chi-square asymptotic of the multivariate tests.
 
 #-----------------------------------------------------------------------
 # Prototyping: creating a function to run the simulation study.
@@ -57,7 +238,11 @@ simul_chi <- function(m, k, rept, N = 1000) {
         S1 <- var(residuals(m1)) * (n - 1)/n
         #------------------------------------
         # Wilks' statistic.
-        wil <- -n * log(det(S1)/det(S0))
+        logdet <- log(det(S1)/det(S0))
+        # Has an asymptotic chi-square aproxiamation.
+        wil <- -n * logdet
+        # ATTENTION: this has a better chi-square approximation.
+        # wil <- -(n - k - 1/2 * (m - (k - 1) + 1)) * logdet
         #------------------------------------
         # Hotelling-Lawley's statistic.
         hol <- n * sum(diag(solve(S1, S0 - S1)))
@@ -176,7 +361,7 @@ useOuterStrips(
     })
 ```
 
-# The F approximation
+# The $F$ approximation
 
 ## Running the simulation study
 
@@ -210,7 +395,8 @@ simul_F <- function(m, k, rept, N = 1000) {
     return(smp)
 }
 
-simul_F(m = 3, k = 4, rept = 10, N = 20)
+# Testing.
+simul_F(m = 3, k = 4, rept = 10, N = 5)
 
 # Simulation for each design setting case.
 res <- by(data = ds,
@@ -261,6 +447,108 @@ useOuterStrips(
 
 #-----------------------------------------------------------------------
 ```
+
+# The Hotelling-Lawley trace and the Wald test
+
+```{r, include = TRUE, eval = TRUE}
+rm(list = ls())
+
+# The iris dataset.
+m0 <- lm(cbind(Petal.Length,
+               Petal.Width,
+               Sepal.Length,
+               Sepal.Width) ~ Species,
+         data = iris)
+
+# The model matrix and the X'X.
+X <- model.matrix(m0)
+XlX <- crossprod(X)
+
+B <- coef(m0)    # Matrix of parameters.
+b <- cbind(c(B)) # vec(B): vectorized form.
+
+n <- nrow(X)  # Number of sample units.
+k <- nrow(B)  # Number of lines in B or columns in X.
+r <- ncol(B)  # Number of responses.
+
+# To test H_0: the Spiecies are equal in all responses.
+A <- rbind(c(0, 1, 0),
+           c(0, 0, 1))
+h <- nrow(A)  # Number of linear functions.
+
+# All responses.
+M <- cbind(diag(r))
+
+# Only the first response.
+# M <- cbind(diag(r)[, 1])
+
+v <- ncol(M) # Number of linear combination of responses.
+
+# Breads, ham and the Sandwich (H = hypothesis SSP).
+ABM <- A %*% B %*% M
+AXlXiA <- A %*% solve(XlX) %*% t(A)
+H <- t(ABM) %*% solve(AXlXiA) %*% ABM
+H
+
+library(car)
+
+# The F-statistic for the ABM = 0 hypothesis.
+linearHypothesis(m0,
+                 hypothesis.matrix = A,
+                 P = M)
+
+# The residual SPP of the full model.
+R <- crossprod(residuals(m0))
+
+# Model under the constrain of the H_0.
+m00 <- update(m0, . ~ 1)
+
+# The hypothesis SPP as a difference of residuals SPP.
+H <- crossprod(residuals(m00)) - R
+H
+
+# Function that returns the trace of a matrix.
+tr <- function(x) sum(diag(x))
+tr(solve(R) %*% H)
+tr(H %*% solve(R))
+
+# The trace is the Hotelling-Lawley criterion.
+anova(m0, test = "Hotelling")
+
+# Testing the Kronecker operation in R.
+# kronecker(diag(1:4), matrix(1, 2, 2))
+
+# Testing the same hypothesis but with the vectorized components.
+L <- kronecker(t(M), A)
+b
+Lb <- L %*% b
+Lb
+
+# Sigma <- var(residuals(m0))
+Sigma <- R/n
+
+# MSM <- t(M) %*% Sigma %*% M
+# MSM.XlXi <- kronecker(MSM, solve(XlX))
+# (1/n) * t(Lb) %*% solve(L %*% MSM.XlXi %*% t(L)) %*% Lb
+
+# Wald statistic.
+t(Lb) %*%
+    solve(L %*%
+          kronecker(t(M) %*% R %*% M,
+                    solve(XlX)) %*%
+          t(L)) %*%
+    Lb
+# H-L trace.
+tr(H %*% solve(R))
+
+# So, Wald is the Hotelling-Lawley trace criterion.
+```
+
+# References
+
+<!-- Insert the refereces right here! -->
+<div id="refs">
+</div>
 
 # Session information
 
