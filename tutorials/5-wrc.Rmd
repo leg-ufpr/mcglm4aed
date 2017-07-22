@@ -1,0 +1,281 @@
+---
+title: "Water retention curve parameters as function of soil management and depth"
+author: |
+  | Wagner H. Bonat   | Walmes M. Zeviani |
+  |:-----------------:|:-----------------:|
+  | `wbonat@ufpr.br`  | `walmes@ufpr.br`  |
+  |  LEG/DEST/UFPR    |  LEG/DEST/UFPR    |
+date: >
+  62^a^ RBras & 17^o^ SEAGRO</br>
+  July 24--28, 2017</br>
+  UFLA, Lavras/MG
+bibliography: ../slides/config/ref.bib
+csl: ../slides/config/elsevier-harvard.csl
+---
+
+```{r, include = FALSE}
+source("../slides/config/_setup.R")
+```
+
+# Data description and objectives
+
+These data are measures of soil water content (m^3^ m^-3^) as a function
+of the matrix potential (kPa) collected in a field under coffee
+cultivation using conservation and intensive soil management.
+
+Undisturbed soil samples were collected from a soil classified as
+Distroferric Red Latosol (LVd) in a coffe crop field with 3.5 years of
+implantation.
+
+The samples were extracted from an experimental design that considered 2
+levels of sampling on the crop field (inline and between lines of crop)
+and depth of the soil layer (0-20, 20-40, 40-80, 80-120, 120 -160 cm),
+with three replicates, making up 30 experimental units.
+
+The tensions applied to the extracted soil samples were 0, 1, 2, 4, 6,
+10, 33, 100, 500 and 1500 kPa, resulting in 300 pairs of water content
+values (moisture) and matric potential (tension).
+
+The objective of this data acquisition is to verify the effect of
+management practices (made inline and between lines) on the water
+retention curve of the soil as well as verify the extent of such effects
+along the soil profile.
+
+These data were used as part of the Doctor Thesis of the second author
+of this course. For more information, see @zeviani2013 (in portuguese).
+
+# Analysis with MLM
+
+```{r, message = FALSE}
+#-----------------------------------------------------------------------
+# Packages.
+
+rm(list = ls())
+library(lattice)
+library(latticeExtra)
+library(gridExtra)
+library(reshape2)
+library(car)
+library(candisc)
+library(corrplot)
+library(doBy)
+library(multcomp)
+```
+
+```{r}
+# Loading the data.
+url <- "http://www.leg.ufpr.br/~walmes/data/ZevianiTeseCRA.txt"
+wrc <- read.table(url, header = TRUE, sep = "\t")
+
+# Position: between and on the crop lines.
+# Depth: soil layers.
+names(wrc) <- c("Pos", "depth", "rep", "tens", "mois")
+wrc <- transform(wrc,
+                 Pos = factor(Pos, labels = c("bet", "on")),
+                 depth = as.integer(sub(".*-", "",
+                                        as.character(wrc$depth))))
+str(wrc)
+
+# The curves.
+useOuterStrips(
+    xyplot(mois ~ tens | Pos + depth,
+           data = wrc,
+           groups = rep,
+           type = "o",
+           xscale.components = xscale.components.log10ticks,
+           scales = list(x = list(log = 10))))
+
+# Defines the sample unit for the water retention curve.
+wrc$eu <- with(wrc, interaction(Pos, depth, rep, drop = TRUE))
+
+# Fit the nonlinear model for each experimental unit.
+model <- mois ~ Ur + (Us - Ur)/(1 + (exp(a) * (tens))^n)^(1 - 1/n)
+start <- list(Ur = 0.3,
+              Us = 0.6,
+              a = 0.1,
+              n = 1.5)
+
+# n0 <- nls(model, data = wrc, start = start)
+# summary(n0)
+
+# Serial fit of the nonlinear model.
+fits <- by(wrc,
+           INDICES = wrc$eu,
+           FUN = function(wrc_i) {
+               n0 <- nls(model,
+                         data = wrc_i,
+                         start = start)
+               return(cbind(wrc_i[1, c("Pos", "depth", "rep")],
+                            as.data.frame(as.list(coef(n0)))))
+           })
+
+# Estimated parameters for all experimental units.
+wrcp <- do.call(rbind, fits)
+str(wrcp)
+
+# The water retention parameters. Do the long and then the wide format.
+wrp <- dcast(data = melt(data = wrcp,
+                          id.vars = c("Pos", "depth", "rep")),
+              formula = Pos + rep ~ variable + depth)
+str(wrp)
+
+# We can't apply MANOVA here unless we assume that the observations in
+# depth are independent.
+
+# Variables with capital letters denote categorical factors.
+wrcp$Depth <- factor(wrcp$depth)
+```
+```{r, fig.height = 12}
+#-----------------------------------------------------------------------
+# Visualizing the data.
+
+v <- c("Us", "Ur", "a", "n")
+sp1 <- splom(~wrcp[v],
+             groups = Depth,
+             data = wrcp,
+             auto.key = list(title = "Depth",
+                             cex.title = 1,
+                             columns = 3),
+             par.settings = list(superpose.symbol = list(pch = 4)),
+             as.matrix = TRUE)
+sp2 <- splom(~wrcp[v],
+             groups = Pos,
+             data = wrcp,
+             pch = 1,
+             auto.key = list(title = "Position",
+                             cex.title = 1),
+             as.matrix = TRUE)
+
+# c("Depth" = sp1, "Position" = sp2, merge.legends = TRUE)
+grid.arrange(sp1, sp2, ncol = 1)
+```
+```{r}
+#-----------------------------------------------------------------------
+# Fitting the multivariate linear model.
+
+m0 <- lm(cbind(Us, Ur, a, n) ~ Pos * Depth,
+         data = wrcp)
+anova(m0)
+summary.aov(m0)
+
+# splom(residuals(m0))
+
+# Drops the interaction.
+m1 <- update(m0, . ~ Pos + Depth)
+anova(m0, m1)
+anova(m1)
+
+# A second order polynomial fits well.
+m2 <- update(m0, . ~ Pos + depth + I(depth^2))
+anova(m1, m2)
+anova(m2)
+# summary.aov(m2)
+```
+
+## Profile analysis
+
+```{r}
+#-----------------------------------------------------------------------
+# Profile analysis.
+
+# Inner factor data structure.
+idata <- data.frame(resp = v)
+Anova(m0, idata = idata, idesign = ~resp)
+```
+
+## Canonical discriminant analysis
+
+```{r, message = FALSE}
+library(candisc)
+
+# For the effect of Position.
+cd <- candisc(m1, term = "Pos")
+
+cd
+summary(cd)
+plot(cd)
+
+# For the effect of depth.
+cd <- candisc(m1, term = "Depth")
+
+cd
+summary(cd)
+
+plot(cd)
+```
+
+# Using the `mcglm` package
+
+```{r}
+# Load the package.
+library(mcglm)
+source("../review/functions.R")
+# library(Matrix)
+# packageVersion("mcglm")
+
+# Sort the lines per subject (`loc`) followed by `cam`.
+wrcp$eu <- with(wrcp, interaction(Pos, rep, drop = TRUE))
+wrcp <- plyr::arrange(wrcp, eu)
+head(wrcp)
+```
+
+```{r}
+#-----------------------------------------------------------------------
+# Covariance structures for the inner subject factor `depth`.
+
+# Independent covariance structure.
+Z0 <- mc_id(wrcp)
+length(Z0)
+
+# Distance based covariance structure.
+Z_dist <- mc_dist(id = "eu",
+                  time = "Depth",
+                  data = wrcp,
+                  method = "euclidean")
+length(Z_dist)
+
+linpred <- sapply(sprintf("%s ~ Pos * Depth",
+                          colnames(m0$model[[1]])),
+                  FUN = as.formula)
+linpred
+
+mc0 <- mcglm(linear_pred = linpred,
+             matrix_pred = replicate(length(linpred),
+                                     Z0,
+                                     simplify = FALSE),
+             data = wrcp)
+
+# FIXME: this returns an error.
+# mc1 <- mcglm(linear_pred = linpred,
+#              matrix_pred = replicate(length(linpred),
+#                                      Z_dist,
+#                                      simplify = FALSE),
+#              control_algorithm = list(tunning = 0.8),
+#              data = wrcp)
+#--------------------------------------------
+# Automatic initial values selected.
+# Error in .local(x, ...) :
+#   internal_chm_factor: Cholesky factorization failed
+# Error: $ operator is invalid for atomic vectors
+
+#-----------------------------------------------------------------------
+# Comparing models fit.
+
+logLik.mlm(m0)
+gof(mc0)
+```
+
+# References
+
+<!-- Insert the refereces right here! -->
+<div id="refs">
+</div>
+
+# Session information
+
+```{r}
+# devtools::session_info()
+Sys.time()
+cbind(Sys.info())
+sessionInfo()
+```

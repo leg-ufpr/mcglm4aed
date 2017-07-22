@@ -21,6 +21,10 @@ navbar:
         href: tutorials/4-soybean.html
       - text: "The teak dataset"
         href: tutorials/3-teca.html
+      - text: "Water retention curves"
+        href: tutorials/5-wrc.html
+      - text: "Cotton production under defoliation"
+        href: tutorials/6-cotton.html
       - text: "Sequential vs marginal"
         href: tutorials/sequential-marginal.html
     - text: "Scripts"
