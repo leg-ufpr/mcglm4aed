@@ -2,6 +2,33 @@ name: "mcglm4aed"
 #output_dir: "."
 output_dir: "_site"
 exclude: ["*.pdf", "review", "README.md", "datasets.md", "README.html", "datasets.html"]
+navbar:
+  title: "mcglm4aed"
+  left:
+    - text: "Slides"
+      menu:
+      - text: "Introduction and Outline"
+        href: slides/0-intro.html
+      - text: "Multivariate Gaussian linear models"
+        href: slides/1-mlm.html
+      - text: "Multivariate covariance generalized linear models"
+        href: slides/2-mcglm.html
+    - text: "Tutorials"
+      menu:
+      - text: "Computation and simulation"
+        href: tutorials/0-computation-simulation.html
+      - text: "The soybean dataset"
+        href: tutorials/4-soybean.html
+      - text: "The teak dataset"
+        href: tutorials/3-teca.html
+      - text: "Sequential vs marginal"
+        href: tutorials/sequential-marginal.html
+    - text: "Scripts"
+      href: https://github.com/leg-ufpr/mcglm4aed/tree/master/slides/scripts
+  right:
+    - text: GitHub
+      icon: fa-github fa-lg
+      href: https://github.com/leg-ufpr/mcglm4aed
 output:
   html_document:
     theme: united
@@ -15,20 +42,3 @@ output:
     includes:
       in_header: slides/config/MathJax.html
     css: config/site-style.css
-navbar:
-  title: "mcglm4aed"
-  left:
-    - text: "Slides"
-      menu:
-      - text: "Introduction and Outline"
-        href: slides/0-intro.html
-    - text: "Tutorials"
-      menu:
-      - text: "Sequential vs marginal"
-        href: tutorials/sequential-marginal.html
-    - text: "Scripts"
-      href: https://github.com/leg-ufpr/mcglm4aed/tree/master/slides/scripts
-right:
-    - text: GitHub
-      icon: fa-github fa-lg
-      href: https://github.com/leg-ufpr/mcglm4aed
