@@ -33,8 +33,14 @@ git checkout -b gh-pages
 # tree
 
 # Force add html, js, css, png, jpg and site_libs/.
+git status
+git branch
 git add -f site_libs/
-git add -f *.{html,css,png,jpg}
+git add -f slides/*.{html,css}
+git add -f tutorials/*.{html,css}
+
+git rm tutorials/*.Rmd
+git rm slides/*.Rmd
 
 # Undo the `git add`.
 # git reset HEAD
