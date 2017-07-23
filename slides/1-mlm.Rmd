@@ -1,14 +1,29 @@
 ---
 title: "Multivariate analysis of Gaussian data (MANOVA)"
 subtitle: Part I
-author: |
-  | Wagner H. Bonat   | Walmes M. Zeviani |
-  |:-----------------:|:-----------------:|
-  | `wbonat@ufpr.br`  | `walmes@ufpr.br`  |
-date: >
-  62^a^ RBras & 17^o^ SEAGRO</br>
-  July 24--28, 2017</br>
+date: |
+  62^a^ RBras & 17^o^ SEAGRO\
+  July 24--28, 2017\
   UFLA, Lavras/MG
+author: |
+  ```{r, echo = FALSE, results = "asis"}
+  source("config/yaml-authors.R", print.eval = TRUE)
+  ```
+lang: pt-BR
+graphics: yes
+header-includes:
+  - \usepackage{palatino}
+  - \usepackage{inconsolata}
+  - \usepackage{color}
+#-- Uncomment for beamer.
+#   - \let\oldframe\frame
+#   - \renewcommand\frame[1][allowframebreaks]{\oldframe[#1]}
+#   - \setbeamertemplate{frametitle continuation}{}
+# classoption:
+#   - serif
+#   - mathserif
+#   - professionalfont
+#   - aspectratio=169
 bibliography: config/ref.bib
 cls: config/elsevier-harvard.csl
 ---
@@ -160,10 +175,10 @@ TODO describe the datasets.
 
 The model for each observation $i = 1, \ldots, n$, is
 $$
-\begin{aligned}
+\begin{align*}
   y_i &\sim \text{Normal}(\mu_i, \sigma^2)\\
   \mu_i &= \mathbf{X}_{i.}\boldsymbol{\beta},
-\end{aligned}
+\end{align*}
 $$
 
 where
@@ -178,14 +193,14 @@ where
 
 The model written for the response (column) vector is
 $$
-\begin{aligned}
+\begin{align*}
   \mathbf{y} &=
     \mathbf{X}\boldsymbol{\beta} + \boldsymbol{\epsilon} \\
   \boldsymbol{\epsilon} &\sim
     \text{Normal}_n(\mathbf{0}, \sigma^2 \mathbf{I}) \Rightarrow
   \epsilon_i \overset{iid}{\sim}
     \text{Normal}(0, \sigma^2),
-\end{aligned}
+\end{align*}
 $$
 
 where
@@ -202,7 +217,7 @@ where
 The likelihood function for $\boldsymbol{\beta}$ and $\sigma^2$ is
 
 $$
-\begin{aligned}
+\begin{align*}
 L(\boldsymbol{\beta}, \sigma^2) &=
   \prod_{i=1}^n \left[
     (2\pi\sigma^2)^{-1/2}
@@ -223,31 +238,31 @@ L(\boldsymbol{\beta}, \sigma^2) &=
        (\sigma^2 \mathbf{I})^{-1}
       (\mathbf{y} - \mathbf{X}\boldsymbol{\beta})
     \right\}.
-\end{aligned}
+\end{align*}
 $$
 
 The MLE estimators are
 
 $$
-\begin{aligned}
+\begin{align*}
   \boldsymbol{\hat\beta} &=
     (\mathbf{X}' \mathbf{X})^{-1} \mathbf{X}' \mathbf{y}\\
   \hat{\sigma}^2 &=
     (\mathbf{y} - \mathbf{\hat y})'
     (\mathbf{y} - \mathbf{\hat y})/n,
       \quad \mathbf{\hat y} = \mathbf{X} \boldsymbol{\hat\beta},\\
-\end{aligned}
+\end{align*}
 $$
 
 The maximized likelihood is
 
 $$
-\begin{aligned}
+\begin{align*}
 \max_{\beta, \sigma^2} L(\boldsymbol{\beta}, \sigma^2) &=
     L(\boldsymbol{\hat\beta}, \hat{\sigma}^2) \\
   &= (2\pi)^{-n/2} (\hat{\sigma}^2)^{-n/2}
        \exp\left\{-n/2 \right\}.
-\end{aligned}
+\end{align*}
 $$
 
 ## A simple example
@@ -426,12 +441,12 @@ Note that
 
 The maximized likelihood for a univariate LM is
 $$
-\begin{aligned}
+\begin{align*}
 \max_{\beta, \sigma^2} L(\boldsymbol{\beta}, \sigma^2) &=
     L(\boldsymbol{\hat\beta}, \hat{\sigma}^2) \\
   &= (2\pi)^{-n/2} (\hat{\sigma}^2)^{-n/2}
        \exp\left\{-n/2 \right\}.
-\end{aligned}
+\end{align*}
 $$
 
 The likelihood ratio for two nested models is
@@ -547,10 +562,10 @@ responses measured in each sample unit.
 
 The model for each sample unit $i = 1, \ldots, n$, is
 $$
-\begin{aligned}
+\begin{align*}
   \mathbf{Y}_{i.} &\sim \text{Normal}_r(\boldsymbol{\mu}_i, \Sigma)\\
   \boldsymbol{\mu}_i &= \mathbf{X}_{i.}\boldsymbol{B},
-\end{aligned}
+\end{align*}
 $$
 
 where
@@ -567,12 +582,12 @@ where
 
 The model written for the response matrix is
 $$
-\begin{aligned}
+\begin{align*}
   \mathbf{Y} &=
     \mathbf{X}\boldsymbol{B} + \boldsymbol{E} \\
   \boldsymbol{E}_{i.} &\sim
     \text{Normal}_r(\mathbf{0}, \Sigma)
-\end{aligned}
+\end{align*}
 $$
 where
 
@@ -590,7 +605,7 @@ knitr::include_graphics("../slides/img/matricial_manova_2.png")
 
 The likehood for one sample unit is
 $$
-\begin{aligned}
+\begin{align*}
   L(\boldsymbol{B},\Sigma,\mathbf{Y}_{i.}) =
     (2\pi)^{-r/2} |\Sigma|^{-1/2}
     \exp\left\{
@@ -599,13 +614,13 @@ $$
        \Sigma^{-1}
       (\mathbf{Y}_{i.} - \mathbf{X}_{i.}\boldsymbol{B})'
     \right\}
-\end{aligned}
+\end{align*}
 $$
 
 For all sample units is
 
 $$
-\begin{aligned}
+\begin{align*}
   L(\boldsymbol{B},\Sigma,\mathbf{Y}) &= \prod_{i = 1}^n
     (2\pi)^{-r/2} |\Sigma|^{-1/2}
     \exp\left\{
@@ -621,7 +636,7 @@ $$
        \Sigma^{-1}
       (\mathbf{Y}_{i.} - \mathbf{X}_{i.}\boldsymbol{B})'
     \right\}.
-\end{aligned}
+\end{align*}
 $$
 
 Using the vectorize ($\text{vec}$) operation and kronecker product

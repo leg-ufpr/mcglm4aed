@@ -1,36 +1,28 @@
 ---
 title: "Multivariate covariance generalized linear models for the analysis of experimental data"
-author: |
-  | Wagner H. Bonat   | Walmes M. Zeviani |
-  |:-----------------:|:-----------------:|
-  | `wbonat@ufpr.br`  | `walmes@ufpr.br`  |
 date: |
   62^a^ RBras & 17^o^ SEAGRO\
   July 24--28, 2017\
   UFLA, Lavras/MG
+author: |
+  ```{r, echo = FALSE, results = "asis"}
+  source("config/yaml-authors.R", print.eval = TRUE)
+  ```
 lang: pt-BR
-# author: "Wagner H. Bonat & Walmes M. Zeviani "
-# graphics: yes
+graphics: yes
+header-includes:
+  - \usepackage{palatino}
+  - \usepackage{inconsolata}
+  - \usepackage{color}
+#-- Uncomment for beamer.
+#   - \let\oldframe\frame
+#   - \renewcommand\frame[1][allowframebreaks]{\oldframe[#1]}
+#   - \setbeamertemplate{frametitle continuation}{}
 # classoption:
 #   - serif
 #   - mathserif
 #   - professionalfont
 #   - aspectratio=169
-# header-includes:
-#   - \usepackage{palatino}
-#   - \usepackage{inconsolata}
-#   - \let\oldframe\frame
-#   - \renewcommand\frame[1][allowframebreaks]{\oldframe[#1]}
-#   - \setbeamertemplate{frametitle continuation}{}
-# output:
-#   beamer_presentation:
-#     fig_caption: yes
-#     fig_crop: no
-#     highlight: haddock
-#     #includes:
-#     #  in_header: preamble-2.tex
-#     #incremental: yes
-#     #keep_tex: yes
 ---
 
 # Introduction and Outline
@@ -50,6 +42,7 @@ lang: pt-BR
       and $\ldots$ regression models.
     - Bounded data: logistic, probit, beta, simplex
       and $\ldots$  regression models.
+
 
 ## Main goal
 
