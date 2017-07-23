@@ -78,18 +78,18 @@ head(iris)
   * Let $\boldsymbol{\beta}$ be a $k \times 1$ parameter vector.
   * Orthodox GLM
     $$
-    \begin{eqnarray}
+    \begin{aligned}
       \label{modelGLM}
-      \mathrm{E}(\boldsymbol{Y}) &=&
+      \mathrm{E}(\boldsymbol{Y}) &=
         \boldsymbol{\mu} = g^{-1}(\boldsymbol{X} \boldsymbol{\beta})
         \nonumber \\
-      \mathrm{Var}(\boldsymbol{Y}) &=&
+      \mathrm{Var}(\boldsymbol{Y}) &=
         \boldsymbol{\Sigma} =
           \mathrm{V}(\boldsymbol{\mu};p)^{\frac{1}{2}}
           (\tau_0 \boldsymbol{I})
           \mathrm{V}(\boldsymbol{\mu};p)^{\frac{1}{2}}.
           \quad \quad \quad    (1)
-      \end{eqnarray}
+      \end{aligned}
     $$
   * $g$ is the link function.
   * $\mathrm{V}(\boldsymbol{\mu};p) =
@@ -191,16 +191,16 @@ head(iris)
     \sim N(\boldsymbol{0},\tau_0 \boldsymbol{I})$.
   * It is easy to show that
     $$
-      \begin{eqnarray}
-        \mathrm{E}(\boldsymbol{Y}) &=&
+      \begin{aligned}
+        \mathrm{E}(\boldsymbol{Y}) &=
           \boldsymbol{\mu} = \boldsymbol{X} \boldsymbol{\beta}
           \nonumber \\
-        \mathrm{Var}(\boldsymbol{Y}) &=&
+        \mathrm{Var}(\boldsymbol{Y}) &=
           \boldsymbol{\Omega} =
           \tau_0 \boldsymbol{I} +
           \boldsymbol{U}\boldsymbol{D}\boldsymbol{U}^{\top}.
           \nonumber
-      \end{eqnarray}
+      \end{aligned}
     $$
   * Furthermore,
     $$
@@ -223,17 +223,14 @@ head(iris)
 
   * Exchangeable
     $$
-      \begin{equation*}
         Z_1 = \begin{bmatrix}
                 1 & 1 & 1\\
                 1 & 1 & 1\\
                 1 & 1 & 1
               \end{bmatrix}.
-      \end{equation*}
     $$
   * Unstructured
     $$
-      \begin{equation*}
         Z_1 = \begin{bmatrix}
                 0 & 1 & 0\\
                 1 & 0 & 0\\
@@ -249,27 +246,21 @@ head(iris)
                 0 & 0 & 1\\
                 0 & 1 & 0
               \end{bmatrix}.
-        \end{equation*}
     $$
 
 ## Example 3: conditional autoregressive models
 
   * Specify the inverse of the covariance matrix
     $$
-      \begin{equation*}
-      \label{CAR}
         \boldsymbol{\Omega}^{-1}(\tau,\rho) =
           \tau (\boldsymbol{D} - \rho \boldsymbol{W}),
-      \end{equation*}
     $$
     where $\boldsymbol{W}$ is a neighbourhood matrix and
     $\boldsymbol{D}$ is a diagonal matrix with the number of neighbours.
   * Linear covariance models using the inverse covariance link function
     $$
-      \begin{equation*}
         \boldsymbol{\Omega}^{-1}(\boldsymbol{\tau}) =
         \tau_0 \boldsymbol{D} + \tau_1 \boldsymbol{W},
-      \end{equation*}
     $$
     where $\tau_0 = \tau$ and $\tau_1 = - \tau \rho$.
   * $\boldsymbol{W}$ can describe temporal, spatial and spatial temporal
@@ -300,19 +291,19 @@ head(iris)
     outcomes.
   * We define the McGLM by,
     $$
-      \begin{eqnarray}
-        \mathrm{E}(\boldsymbol{Y}) &=&
+      \begin{aligned}
+        \mathrm{E}(\boldsymbol{Y}) &=
           \boldsymbol{M} =
             \{g_1^{-1}(\boldsymbol{X}_1 \boldsymbol{\beta}_1),
             \ldots,
             g_R^{-1}(\boldsymbol{X}_R \boldsymbol{\beta}_R)\}
             \nonumber    \\
-        \mathrm{Var}(\boldsymbol{Y}) &=&
+        \mathrm{Var}(\boldsymbol{Y}) &=
           \boldsymbol{C} =
             \boldsymbol{\Sigma}_R \overset{G} \otimes
             \boldsymbol{\Sigma}_b
             \nonumber
-      \end{eqnarray}
+      \end{aligned}
     $$
     where
     $$
@@ -361,24 +352,19 @@ head(iris)
 
   * The quasi-score function is defined by
     $$
-      \begin{equation*}
         \psi_{\boldsymbol{\beta}}(\boldsymbol{\beta},
           \boldsymbol{\lambda}) = \boldsymbol{D}^\top
             \boldsymbol{C}^{-1}(\mathcal{Y} - \mathcal{M}),
-      \end{equation*}
     $$
     where $\boldsymbol{D} = \nabla_{\boldsymbol{\beta}} \mathcal{M}$ is
     an $NR \times K$ matrix.
   * The Pearson estimating function is defined by,
     $$
-      \begin{equation*}
-        \label{Pearson}
         \psi_{\boldsymbol{\lambda}_i}(\boldsymbol{\beta},
         \boldsymbol{\lambda}) =
         \mathrm{tr}(W_{\boldsymbol{\lambda}i}
           (\boldsymbol{r}^\top\boldsymbol{r} -
           \boldsymbol{C})),
-      \end{equation*}
     $$
     where $W_{\boldsymbol{\lambda}i} = -\frac{\partial
     \boldsymbol{C}^{-1}}{\partial \boldsymbol{\lambda}_i}$ and
@@ -388,19 +374,19 @@ head(iris)
 
   * Modified chaser
     $$
-    \begin{eqnarray}
+    \begin{aligned}
     \label{chaser}
-      \boldsymbol{\beta}^{(i+1)} &=&
+      \boldsymbol{\beta}^{(i+1)} &=
         \boldsymbol{\beta}^{(i)} - \mathrm{S}_{\boldsymbol{\beta}}^{-1}
         \psi_{\boldsymbol{\beta}}
         (\boldsymbol{\beta}^{(i)}, \boldsymbol{\lambda}^{(i)})
         \nonumber \\
-      \boldsymbol{\lambda}^{(i+1)} &=&
+      \boldsymbol{\lambda}^{(i+1)} &=
         \boldsymbol{\lambda}^{(i)} - \alpha
         \mathrm{S}_{\boldsymbol{\lambda}}^{-1}
         \psi_{\boldsymbol{\lambda}}(\boldsymbol{\beta}^{(i+1)},
           \boldsymbol{\lambda}^{(i)}). \nonumber
-    \end{eqnarray}
+    \end{aligned}
     $$
   * $\mathrm{S}_{\boldsymbol{\beta}}$ and
     $\mathrm{S}_{\boldsymbol{\lambda}}$ are the sensitivity matrices
@@ -415,21 +401,17 @@ head(iris)
   * The asymptotic distribution of $\hat{\boldsymbol{\theta}}$ is given
     by
     $$
-    \begin{equation*}
       \hat{\boldsymbol{\theta}} \sim
         \mathrm{N}_{K+Q}(\boldsymbol{\theta},
           \mathrm{J}_{\boldsymbol{\theta}}^{-1})
-    \end{equation*}
     $$
     where $\mathrm{J}_{\boldsymbol{\theta}}^{-1}$ is the inverse of the
     Godambe information matrix,
     $$
-    \begin{equation*}
       \mathrm{J}_{\boldsymbol{\theta}}^{-1} =
         \mathrm{S}_{\boldsymbol{\theta}}^{-1}
         \mathrm{V}_{\boldsymbol{\theta}}
         \mathrm{S}_{\boldsymbol{\theta}}^{-\top},
-    \end{equation*}
     $$
     where $\mathrm{S}_{\boldsymbol{\theta}}^{-\top} =
     (\mathrm{S}_{\boldsymbol{\theta}}^{-1})^{\top}$.
@@ -750,9 +732,14 @@ corrplot(COR,
 
 ---
 
-<!-- Coloca as referências aqui. -->
-<div id="refs">
-</div>
+```{r, echo = FALSE, results = "asis", message = FALSE, warning = FALSE, error = FALSE}
+if (knitr::opts_knit$get("rmarkdown.pandoc.to") == "slidy") {
+    cat('<!-- Insert the refereces right here! -->',
+        '<div id="refs">',
+        '</div>\n',
+        sep = "\n")
+}
+```
 
 ---
 
