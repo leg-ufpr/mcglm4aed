@@ -15,6 +15,7 @@ header-includes:
   - \usepackage{palatino}
   - \usepackage{inconsolata}
   - \usepackage{color}
+  - \setcounter{MaxMatrixCols}{20} # More than 10 columns in bmatrix.
 #-- Uncomment for beamer.
 #   - \let\oldframe\frame
 #   - \renewcommand\frame[1][allowframebreaks]{\oldframe[#1]}
@@ -27,6 +28,7 @@ header-includes:
 bibliography: config/ref.bib
 cls: config/elsevier-harvard.csl
 ---
+
 
 # The univariate analysis of experimental data
 
@@ -175,10 +177,10 @@ TODO describe the datasets.
 
 The model for each observation $i = 1, \ldots, n$, is
 $$
-\begin{align*}
+\begin{aligned}
   y_i &\sim \text{Normal}(\mu_i, \sigma^2)\\
   \mu_i &= \mathbf{X}_{i.}\boldsymbol{\beta},
-\end{align*}
+\end{aligned}
 $$
 
 where
@@ -193,14 +195,14 @@ where
 
 The model written for the response (column) vector is
 $$
-\begin{align*}
+\begin{aligned}
   \mathbf{y} &=
     \mathbf{X}\boldsymbol{\beta} + \boldsymbol{\epsilon} \\
   \boldsymbol{\epsilon} &\sim
     \text{Normal}_n(\mathbf{0}, \sigma^2 \mathbf{I}) \Rightarrow
   \epsilon_i \overset{iid}{\sim}
     \text{Normal}(0, \sigma^2),
-\end{align*}
+\end{aligned}
 $$
 
 where
@@ -217,7 +219,7 @@ where
 The likelihood function for $\boldsymbol{\beta}$ and $\sigma^2$ is
 
 $$
-\begin{align*}
+\begin{aligned}
 L(\boldsymbol{\beta}, \sigma^2) &=
   \prod_{i=1}^n \left[
     (2\pi\sigma^2)^{-1/2}
@@ -238,31 +240,31 @@ L(\boldsymbol{\beta}, \sigma^2) &=
        (\sigma^2 \mathbf{I})^{-1}
       (\mathbf{y} - \mathbf{X}\boldsymbol{\beta})
     \right\}.
-\end{align*}
+\end{aligned}
 $$
 
 The MLE estimators are
 
 $$
-\begin{align*}
+\begin{aligned}
   \boldsymbol{\hat\beta} &=
     (\mathbf{X}' \mathbf{X})^{-1} \mathbf{X}' \mathbf{y}\\
   \hat{\sigma}^2 &=
     (\mathbf{y} - \mathbf{\hat y})'
     (\mathbf{y} - \mathbf{\hat y})/n,
       \quad \mathbf{\hat y} = \mathbf{X} \boldsymbol{\hat\beta},\\
-\end{align*}
+\end{aligned}
 $$
 
 The maximized likelihood is
 
 $$
-\begin{align*}
+\begin{aligned}
 \max_{\beta, \sigma^2} L(\boldsymbol{\beta}, \sigma^2) &=
     L(\boldsymbol{\hat\beta}, \hat{\sigma}^2) \\
   &= (2\pi)^{-n/2} (\hat{\sigma}^2)^{-n/2}
        \exp\left\{-n/2 \right\}.
-\end{align*}
+\end{aligned}
 $$
 
 ## A simple example
@@ -400,7 +402,7 @@ $$
 where $\text{HSS}$ is the treatment sum of squares, that is the sum of
 squares of the term under the hypothesis $H_0$.
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, warning = FALSE}
 tabaov <- data.frame(DF = sprintf("$%s$", c("l", "h", "n-k")),
                      stringsAsFactors = FALSE)
 tabaov$SS <- sprintf("$%s$",
@@ -415,15 +417,13 @@ tabaov$F <- c("",
               "$\\frac{\\text{HSS}/h}{\\text{RSS}/(n - k)}$",
               "")
 rownames(tabaov) <- c("Blocks", "Treatments", "Residuals")
-kable(tabaov, align = "rccc",
-      format = "html",
-      table.attr = "style=\"width: 100%;\"")
-# help(kable, package = "knitr", h = "html")
+
+output <- knitr::opts_knit$get("rmarkdown.pandoc.to")
+l <- list(x = tabaov, align = "rccc")
+if (output == "slidy") { l$format <- "html" }
+if (output == "slidy") { l$table.attr <- "style=\"width: 100%;\"" }
+do.call(kable, args = l)
 ```
-
-$$
-
-$$
 
 $$
 F = \frac{\text{HSS}}{\text{RSS}} \cdot \frac{n - k}{h} =
@@ -441,17 +441,17 @@ Note that
 
 The maximized likelihood for a univariate LM is
 $$
-\begin{align*}
+\begin{aligned}
 \max_{\beta, \sigma^2} L(\boldsymbol{\beta}, \sigma^2) &=
     L(\boldsymbol{\hat\beta}, \hat{\sigma}^2) \\
   &= (2\pi)^{-n/2} (\hat{\sigma}^2)^{-n/2}
        \exp\left\{-n/2 \right\}.
-\end{align*}
+\end{aligned}
 $$
 
 The likelihood ratio for two nested models is
 $$
-\begin{align*}
+\begin{aligned}
 \Lambda &= \frac{
   \max_{H_1} L(\textit{full model})}{
   \max_{H_0} L(\textit{reduced model})}\\
@@ -462,7 +462,7 @@ $$
  &= \left(\frac{n\hat{\sigma}^2 + n(\hat{\sigma}_0^2 - \hat{\sigma}^2)}{
       n\hat{\sigma}^2}\right)^{n/2}\\
  &\propto \frac{\text{RSS}_0 - \text{RSS}}{\text{RSS}}
-\end{align*}
+\end{aligned}
 $$
 
 The deviance
@@ -473,10 +473,10 @@ approximates to $\chi^2_{k - q}$ under $H_0$.
 
 It can be demonstrated that the quantities
 $$
-  \begin{align*}
+  \begin{aligned}
   \frac{n(\hat{\sigma}_0^2 - \hat{\sigma}^2)}{\sigma^2} &\sim \chi^2_{h}\\
   \frac{n\hat{\sigma}^2}{\sigma^2} &\sim \chi^2_{n - k}\\
-  \end{align*}
+  \end{aligned}
 $$
 are independent and
 $$
@@ -522,14 +522,14 @@ $$
 $$
 Follows that under $H_0$, the statistic
 $$
-\begin{align*}
+\begin{aligned}
 F &= \frac{(\mathbf{A}\boldsymbol{\hat\beta}- \mathbf{c})'
   [\mathbf{A} (\mathbf{X}'\mathbf{X})^{-1} \mathbf{A}']^{-1}
   (\mathbf{A}\boldsymbol{\hat\beta}- \mathbf{c})}{h\hat{\sigma}^2}\\
  &= \frac{(\mathbf{A}\boldsymbol{\hat\beta}- \mathbf{c})'
   [\mathbf{A} \hat{\Sigma}_{\beta} \mathbf{A}']^{-1}
   (\mathbf{A}\boldsymbol{\hat\beta}- \mathbf{c})}{h},\\
-\end{align*}
+\end{aligned}
 $$
 has the $F$ distribution with $h$ and $n-k$ degress of freedom. The
 matrix $\hat{\Sigma}_{\beta} = \hat{\sigma}^2
@@ -551,7 +551,7 @@ IMPROVE
   * Wald test is a second order approxiation of the likelihood.
   * They are only coincident for the univariate Gaussian models.
   * For non gaussian models, they may not produce the same inferences.
-  * Wald only needs $\mathbf{\hat\beta}$ and \mathbf{V}_\beta$ to work.
+  * Wald only needs $\mathbf{\hat\beta}$ and $\mathbf{V}_\beta$ to work.
 
 # Multivariate Linear Models (MLM)
 
@@ -562,10 +562,10 @@ responses measured in each sample unit.
 
 The model for each sample unit $i = 1, \ldots, n$, is
 $$
-\begin{align*}
+\begin{aligned}
   \mathbf{Y}_{i.} &\sim \text{Normal}_r(\boldsymbol{\mu}_i, \Sigma)\\
   \boldsymbol{\mu}_i &= \mathbf{X}_{i.}\boldsymbol{B},
-\end{align*}
+\end{aligned}
 $$
 
 where
@@ -582,12 +582,12 @@ where
 
 The model written for the response matrix is
 $$
-\begin{align*}
+\begin{aligned}
   \mathbf{Y} &=
     \mathbf{X}\boldsymbol{B} + \boldsymbol{E} \\
   \boldsymbol{E}_{i.} &\sim
     \text{Normal}_r(\mathbf{0}, \Sigma)
-\end{align*}
+\end{aligned}
 $$
 where
 
@@ -605,7 +605,7 @@ knitr::include_graphics("../slides/img/matricial_manova_2.png")
 
 The likehood for one sample unit is
 $$
-\begin{align*}
+\begin{aligned}
   L(\boldsymbol{B},\Sigma,\mathbf{Y}_{i.}) =
     (2\pi)^{-r/2} |\Sigma|^{-1/2}
     \exp\left\{
@@ -614,13 +614,13 @@ $$
        \Sigma^{-1}
       (\mathbf{Y}_{i.} - \mathbf{X}_{i.}\boldsymbol{B})'
     \right\}
-\end{align*}
+\end{aligned}
 $$
 
 For all sample units is
 
 $$
-\begin{align*}
+\begin{aligned}
   L(\boldsymbol{B},\Sigma,\mathbf{Y}) &= \prod_{i = 1}^n
     (2\pi)^{-r/2} |\Sigma|^{-1/2}
     \exp\left\{
@@ -636,7 +636,7 @@ $$
        \Sigma^{-1}
       (\mathbf{Y}_{i.} - \mathbf{X}_{i.}\boldsymbol{B})'
     \right\}.
-\end{align*}
+\end{aligned}
 $$
 
 Using the vectorize ($\text{vec}$) operation and kronecker product
@@ -677,7 +677,7 @@ $$
 
 The maximized likelihood is
 $$
-\begin{align*}
+\begin{aligned}
 L(\boldsymbol{\hat\beta}, \hat\Omega)
  &= (2\pi)^{-rn/2} |\hat\Sigma \otimes \mathbf{I}|^{-1/2}
   \exp \left\{
@@ -687,13 +687,13 @@ L(\boldsymbol{\hat\beta}, \hat\Omega)
   \exp \left\{
     -\frac{rn}{2}
   \right\}.
-\end{align*}
+\end{aligned}
 $$
 
 ## Estimation and properties
 
 $$
-\begin{align*}
+\begin{aligned}
 {\boldsymbol{\hat B}} &=
   (\mathbf{X}'\mathbf{X})^{-1}\mathbf{X}'\mathbf{Y}\\
 {\boldsymbol{\hat B}}_{.j} &=
@@ -712,7 +712,7 @@ $$
     \cdots &
     \hat{\sigma}_{rr}(\mathbf{X}'\mathbf{X})^{-1}
     \end{bmatrix}
-\end{align*}
+\end{aligned}
 $$
 
 ## Hypotheses tests on $\boldsymbol{B}$ or $\boldsymbol{\beta}$
@@ -760,7 +760,7 @@ C <- matrix(0L, nrow(A), ncol(beta))
 ```
 ```{r, echo = FALSE, results = "asis"}
 cat("$$\n")
-cat("\\begin{align*}\n")
+cat("\\begin{aligned}\n")
 printbmatrix(A)
 printbmatrix(beta)
 printbmatrix(M)
@@ -772,7 +772,7 @@ printbmatrix(cbind(beta[grepl(x = beta[, 1], pattern = "eta"), ]))
 cat(" &= ")
 printbmatrix(C)
 cat(".")
-cat("\\end{align*}\n")
+cat("\\end{aligned}\n")
 cat("$$\n")
 ```
 
@@ -792,18 +792,19 @@ where
   * $\boldsymbol{\beta}$ is the $rk \times 1$ parameter vector.
   * $\mathbf{c}$ is a $rv \times 1$ vector.
 
-```{r, echo = FALSE, results = "asis"}
+```{r, echo = FALSE, results = "asis", comment = NA}
 A <- cbind(0, 0, 0, diag(3))
 L <- kronecker(t(M), A)
 L[which(L == 1, arr.ind = TRUE)] <- "\\textcolor{red}{1}"
 beta <- cbind(c(beta))
-
 cat("$$\n")
+# cat("\\begin{aligned}\n")
 printbmatrix(L)
 printbmatrix(beta)
 cat(" = ")
 printbmatrix(cbind(c(C)))
 cat(".")
+# cat("\\end{aligned}\n")
 cat("$$\n")
 ```
 
@@ -818,13 +819,13 @@ $$
 
 Defines $\mathbf{H}$ as the hypothesis SSP matrix,
 $$
-\begin{align*}
+\begin{aligned}
   \mathbf{H}
       &= n(\hat{\Sigma}_0 - \hat{\Sigma})\\
       &= (\mathbf{A}\boldsymbol{\hat{B}}\mathbf{M} - \mathbf{C})'
     [\mathbf{A} (\mathbf{X}'\mathbf{X})^{-1} \mathbf{A}']^{-1}
          (\mathbf{A}\boldsymbol{\hat{B}}\mathbf{M} - \mathbf{C}),
-\end{align*}
+\end{aligned}
 $$
 
 The statistic
@@ -859,11 +860,11 @@ has a limiting $\chi^2$ distribution with $vh$ degrees of freedom.
 A test based on the likelihood ratio is written in terms of generalized
 variances
 $$
-\begin{align*}
+\begin{aligned}
   \Lambda
    &= \frac{\max_{H_0} L(\beta, \Sigma)}{\max L(\beta, \Sigma)} \\
    &= \left(\frac{|\hat{\Sigma}_0|}{|\hat{\Sigma}|}\right)^{-n/2},\\
-\end{align*}
+\end{aligned}
 $$
 and the *Wilks' statistic* is
 $$
@@ -891,7 +892,7 @@ with $vh$ degrees of freedom.
 For the same hypothesis, there are four multivariate tests.
 
 $$
-\begin{align*}
+\begin{aligned}
 \text{Wilk's lambda}
   &= \frac{|\mathbf{R}|}{|\mathbf{R} + \mathbf{H}|}
    = \prod_{i=1}^s \frac{1}{1+\lambda_i}\\
@@ -903,7 +904,7 @@ $$
    = \sum_{i=1}^s \frac{\lambda_i}{1+\lambda_i}\\
 \text{Roy's greatest root}
   &= \max(\lambda_1,\ldots,\lambda_s) = \lambda_1
-\end{align*}
+\end{aligned}
 $$
 
 ```{r, echo = FALSE, out.width = "60%"}
@@ -932,6 +933,11 @@ IMPROVE
 
 ---
 
-<!-- Insert the refereces right here! -->
-<div id="refs">
-</div>
+```{r, echo = FALSE, results = "asis", message = FALSE, warning = FALSE, error = FALSE}
+if (knitr::opts_knit$get("rmarkdown.pandoc.to") == "slidy") {
+    cat('<!-- Insert the refereces right here! -->',
+        '<div id="refs">',
+        '</div>\n',
+        sep = "\n")
+}
+```
