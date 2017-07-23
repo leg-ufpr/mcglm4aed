@@ -1,4 +1,5 @@
 html_document:
+  # keep_md: true
   highlight: haddock
   fig_caption: yes
   fig_align: center
@@ -15,3 +16,13 @@ html_document:
     before_body: config/vignette-header.html
     after_body: config/vignette-footer.html
   mathjax: default
+
+# pdf_document:
+#   highlight: haddock
+#   # keep_tex: yes
+#   toc: no
+#   number_sections: yes
+#   fig_caption: no
+# #  template: template.tex
+# #  includes:
+# #    in_header: preamble.tex
