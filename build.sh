@@ -20,13 +20,18 @@ for RMD in $RMDFILES; do
     cd $THEROOT
 done
 
+# Create a PDF with all vignettes in PDF.
+cd tutorials/ && pdfunite *.pdf vignettes.pdf && cd ..
+
 # Renders the site.
 Rscript -e "library(rmarkdown); render_site()"
 
 # Change to the gh-pages branch.
 # git branch --delete gh-pages
+# git branch -D gh-pages
 git checkout -b gh-pages
 # git checkout gh-pages
+# git checkout master
 
 # Go to the _site/.
 # cd _site/
@@ -35,6 +40,7 @@ git checkout -b gh-pages
 # Force add html, js, css, png, jpg and site_libs/.
 git status
 git branch
+git add -f index.html
 git add -f site_libs/
 git add -f slides/*.{html,css}
 git add -f tutorials/*.{html,css}
