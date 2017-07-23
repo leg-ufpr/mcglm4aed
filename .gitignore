@@ -20,3 +20,11 @@ cache/
 auto/
 _site/
 *.pdf
+site_libs/
+slides/*.html
+tutorials/*.html
+tutorials/*.pdf
+README.html
+datasets.html
+index.html
+slides/config/My Collection.bib
