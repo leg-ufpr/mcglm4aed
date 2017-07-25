@@ -40,7 +40,7 @@ options(show.signif.stars = FALSE)
 ```
 
   * Designed experiments usually record several response variables.
-    - Size variables (weight, height, width, diameter, etc).
+    - Size variables (weight, height, width, diameter, volume, etc).
     - Production variables (fresh/dry matter, yield, etc).
     - Resistance variables (to disease, to stress, etc).
     - Chemical variables (P, K, pH, Ca, Mg, etc).
@@ -48,6 +48,7 @@ options(show.signif.stars = FALSE)
     - Sensory variables (sweetness, astringency, acidicity, etc).
     - Performance variables (scores in math, language, running,
       swimming, etc).
+    - Aesthetic variables (colors, shapes, harmony, complexity, etc)
   * Sets of correlated variables for the same dimension (production,
     quality, leaning, flavor, etc).
 
@@ -118,7 +119,7 @@ Often, two situations occurs
 
   1. The results are pratically the same for all responses.
     ```{r, echo = FALSE, comment = NA, results = "hold"}
-    cat(paste("Table of means followed by a Tukey",
+    cat(paste("Table of means followed by letters from a pairwise multiple comparisons",
               "test to a 3-level factor in a RBD.\n\n"))
     tbm
     ```
@@ -128,7 +129,11 @@ Often, two situations occurs
     summary.aov(m0)
     ```
 
-<!-- TODO Insert the canonical discrinant analysis figure here. -->
+---
+
+```{r, echo = FALSE, out.width = "75%"}
+include_graphics("img/canonical_discriminant.png")
+```
 
 ## Some questions
 
@@ -151,16 +156,65 @@ Probably, someone asked himself
   * Multivariate models are more powerful to detect the effect of
     factors if the response variables are correlated.
   * A more useful or compact description of the results can be obtained.
-  * IMPROVE Encourages a more global conclusion.
+  * Encourages a more global conclusion.
   * New insights and formulations can be done for future research.
   * BUT:
     - Its not obvious how to perform a multivariate analysis.
     - Its not obvious how to interpret their results.
     - There are less statistical methods available.
+    - Most of them rely on the multivariate Gaussian distribution.
 
 ## Datasets
 
-TODO describe the datasets.
+<!-- ### iris -->
+<!--  -->
+<!--   * The `iris` data set was collected by Anderson (1935) on three -->
+<!--     species of irises in the Gaspé Peninsula of Quebec, Canada. -->
+<!--   * 50 sample units for each of the 3 species. -->
+<!--   * Responses: (sepal, petal) $\times$ (length, width). -->
+
+### `soybean`: water and potassium in the plant production
+
+  * Soybean (*Glicine max* L.) in greenhouse on a randomized block
+    design.
+  * 3 water content levels (irrigation) $\times$ 5 potassium levels
+    (fertilization).
+  * Responses: grain yield, weight of a hundred grains, number of
+    grains, K concentration in the grain, number of (in)viable pods.
+  * @Serafim2012.
+
+
+### `cotton`: impact of defoliation and growth stage
+
+  * Study the effect of defoliation levels at different growth stages of
+    cotton in plant production.
+  * Made in greenhouse in a complete randomized design.
+  * Experimental unit: a plot with 2 cotton plants.
+  * 5 growth stages $\times$ 5 defoliation levels.
+  * Responses: number of bolls produced, total boll weight, plant height
+    and number of plant nodes.
+  * @Silva2012a.
+
+
+### `wrc`: soil management in the water retention curve
+
+  * Field experiment in a coffee plantation.
+  * Responses: 4 parameters of the soil water retention curve (nonlinear
+    model).
+  * Repeated measures design.
+  * 2 positions in the crop field (outer factor) $\times$ 5 soil layers
+    (inner factor).
+  * How soil management influence the water retention curve along soil
+    layers?
+  * @zeviani2013.
+
+### `teak`: concentration of cations in the soil layers
+
+  * 50 sampled sites on teak florest.
+  * Several chemical soil variables measured in 3 soil layers for each
+    site.
+  * How is the concentration of cations in the soil layers?
+
 
 ## The next topics
 
@@ -270,8 +324,9 @@ $$
 ## A simple example
 
 The `soybean` dataset: 3 x 5 factorial experiment in a randomized block
-design (RBD).  TODO Analysing the yield of grains (`yield`). To make the
-things simpler for now, we subset the data for the potassium level 60.
+design (RBD).  Analysing the yield of grains (`yield`). To make the
+things simpler for now, we subset the data for the potassium level 0. So
+the model corresponds to the one-way anova.
 
 The model, in terms of the sources of variation or effects is
 $$
@@ -385,7 +440,7 @@ This hypothesis, in particular, can be tested by
 
   * the ANOVA table
   * the extra sum of squares approach (close connection with likelihood
-ratio principle).
+ratio).
   * and the Wald test.
 
 ---
@@ -435,9 +490,9 @@ Note that
 
 ---
 
-### The likelihood ratio principle
+### The likelihood ratio
 
-@khuri2009linear
+<!-- @khuri2009linear -->
 
 The maximized likelihood for a univariate LM is
 $$
@@ -535,23 +590,23 @@ has the $F$ distribution with $h$ and $n-k$ degress of freedom. The
 matrix $\hat{\Sigma}_{\beta} = \hat{\sigma}^2
 (\mathbf{X}'\mathbf{X})^{-1}$.
 
+<!--
 In fact, the expected mean squares in the ANOVA table are partitions of
 the regression sum of squares and TODO.
+-->
 
----
-
-IMPROVE
+## Inferences in the univariate Gaussian linear model
 
   * Each $F$ statistic is centered in the ideia of how large is the
     $\text{HSS}$ (evidence against $H_0$) in relation to the
     $\text{RSS}$.
-  * Anova is a least squares construction based on sum of squares
+  * Anova is strategy based on least squares and sum of squares
     decomposition.
-  * Likelihood is a full parametric construction.
-  * Wald test is a second order approxiation of the likelihood.
-  * They are only coincident for the univariate Gaussian models.
-  * For non gaussian models, they may not produce the same inferences.
-  * Wald only needs $\mathbf{\hat\beta}$ and $\mathbf{V}_\beta$ to work.
+  * Likelihood is a full parametric model specification.
+  * Wald test is an approxiamation for the likelihood ratio test.
+  * It depends only on $\mathbf{\hat\beta}$ and $\mathbf{V}_\beta$.
+  * They coincide only for the univariate Gaussian model.
+  * Otherwise, they may not provide the same inferences.
 
 # Multivariate Linear Models (MLM)
 
@@ -598,7 +653,7 @@ where
   * $\boldsymbol{E}_{i.}$: the $i$th row of the error matrix.
 
 ```{r, echo = FALSE, out.width = "90%"}
-knitr::include_graphics("../slides/img/matricial_manova_2.png")
+knitr::include_graphics("img/matricial_manova_2.png")
 ```
 
 ## Likelihood function
@@ -644,7 +699,7 @@ Using the vectorize ($\text{vec}$) operation and kronecker product
 format.
 
 ```{r, echo = FALSE, out.width = "90%"}
-knitr::include_graphics("../slides/img/matricial_manova_reshape.png")
+knitr::include_graphics("img/matricial_manova_reshape.png")
 ```
 
 The same model is now represented by
@@ -655,7 +710,7 @@ $$
 where $\Omega = \Sigma \otimes \mathbf{I}$.
 
 ```{r, echo = FALSE, out.width = "70%"}
-knitr::include_graphics("../slides/img/matricial_manova_Omega.png")
+# knitr::include_graphics("img/matricial_manova_Omega.png")
 ```
 
 Also, it can be written as
@@ -908,7 +963,7 @@ $$
 $$
 
 ```{r, echo = FALSE, out.width = "60%"}
-knitr::include_graphics("../slides/img/the-four-kings-2.jpg")
+knitr::include_graphics("img/the-four-kings-2.jpg")
 ```
 
 We did a small simulation study to access the limiting $\chi^2$ and $F$
@@ -916,18 +971,54 @@ approximation for each of this tests.
 
 ---
 
-IMPROVE
+## Recomendations
 
-  * They differ in the way they seek for evidence against the null
+```{r, echo = FALSE, out.width = "75%"}
+knitr::include_graphics("img/rencher-fig6-2.jpg")
+```
+
+  * They differ in the way they measure the evidence against the null
     hypothesis.
-  * Some general recommendations are:
-    * Ray is the most powerful if.
-    * Pillai is the default because it is robust.
-    * Wilks is appealing because is a LRT.
-    * Hotteling-Lawley can be directlty applied for non gaussian
-      contexts.
+  * The multivariate space offers many perspectives.
+  * Some general recomendations are:
+    * Roy's largest root is the most powerful if one linear function
+      of the variables can resume the results well.
+    * Pillai's trace is the most used because it is more robust to
+      departures from the assumptions.
+    * Wilks is appealing because it is a LRT.
+    * Hotteling-Lawley is a generalization of the $T^2$ statistic and
+      can be directlty applied for non Gaussian contexts.
+
+## Canonical discriminant analysis.
+
+  * Related to canonical correlation and principal components.
+  * Based on eigen values decomposition.
+  * A very interesting complement for multivariate analysis.
+  * Finds linear combinations of the responses variables that maximizes
+    the effect of preditors.
+
+```{r, echo = FALSE, out.width = "75%"}
+include_graphics("img/canonical_discriminant.png")
+```
 
 ## Examples
+
+## Additional topics
+
+  * Assumptions: all depends on the Holy Trinity of Normality,
+    Homoscedasticity and Independence.
+  * Diagnostics: there are some visual and hypothesis based approaches
+    to diagnostic departures from the Holy Trinity.
+  * Beyond the scope of this course.
+  * Limitations:
+    * Missigns in some responses for a sample unit implies in deletion
+      of the entire sample unit.
+  * Extensions:
+    * Multiple design MLM (responses with different sets of predictors).
+    * Predictors with random effects (random/mixed MLM).
+    * Correlations between sample units (split-plot design).
+    * Non-gaussian responses.
+    * and more.
 
 # References
 
