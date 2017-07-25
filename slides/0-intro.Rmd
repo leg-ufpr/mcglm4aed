@@ -47,6 +47,7 @@ header-includes:
 ## Main goal
 
   * Purpose of this course is to present the state of art in
+    
     **Multivariate analysis of experimental data based on the
       multivariate covariance generalized linear models class.**
 
@@ -73,23 +74,25 @@ header-includes:
     - Multivariate hypotheses tests.
     - Computational implementation in $\textsf{R}$.
     - Usage of the $\texttt{lm()}$ and $\texttt{manova()}$ functions.
-    - MANOVA in the McGLM framework.
-    - The $\texttt{mcglm()}$ function.
     - Worked examples.
     - Assumptions and limitations.
     - Concluding remarks.
 
 ### Part II: Multivariate analysis of non-Gaussian data (McGLM)
 
-  * Dealing with non-independent data: Linear covariance models (LCMs).
-  * Specifying the matrix linear predictor:
-    - Repeated measures.
-    - Longitudinal studies.
-    - Mixed models.
   * Dealing with non-Gaussian data: Multivariate generalized linear
     models (MGLMs).
+  * Dealing with non-independent data: Linear covariance models (LCMs).
+  * Specifying the matrix linear predictor:
+    - Mixed models.
+    - Longitudinal studies.
+    - Times series.
+    - Genetic data.
+  * Dealing with non-independent and non-Gaussian data (McGLMs).
   * Estimation and Inference.
   * General linear hypotheses tests.
   * MANOVA-like test for non-Gaussian data.
+  - MANOVA in the McGLM framework.
+  - The $\texttt{mcglm()}$ function.
   * Worked examples.
   * Discussions and extensions.
