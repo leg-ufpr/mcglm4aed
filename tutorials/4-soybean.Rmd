@@ -14,6 +14,7 @@ csl: ../slides/config/elsevier-harvard.csl
 
 ```{r, include = FALSE}
 source("../slides/config/_setup.R")
+source("../review/functions.R")
 ```
 
 # Data description and objectives
@@ -48,6 +49,8 @@ library(candisc)
 library(corrplot)
 library(doBy)
 library(multcomp)
+library(mcglm)
+library(Matrix)
 ```
 
 # MLM for the soybean dataset
@@ -497,9 +500,111 @@ layout(1)
 #-----------------------------------------------------------------------
 ```
 
-# Using the `mcglm` package
+# Multivariate analysis using the `mcglm` package
 
-TODO
+  - Five outcomes yield, w100, Kconc (continuous), tg (count) and nvp (binomial).
+  - Modelling counting outcome (tg).
+
+```{r, message=FALSE}
+# Linear predictor
+f.tg <- tg ~ block + water * potassium
+
+# Matrix linear predictor
+Z0 <- mc_id(soybeanwp)
+
+# Fitting extended Poisson-Tweedie models 
+fit.tg <- mcglm(linear_pred = c(f.tg), matrix_pred = list(c(Z0)),
+                link = "log", variance = "poisson_tweedie", 
+                power_fixed = FALSE,
+                data = soybeanwp)
+summary(fit.tg, print = c("power","Dispersion"))
+anova(fit.tg)
+
+```
+
+  - Modelling the binomial outcome.
+
+```{r}
+# Computing the proportions
+Ntrial <- soybeanwp$nip + soybeanwp$nvp
+soybeanwp$prop <- soybeanwp$nvp/(Ntrial)
+
+# Linear predictor
+f.nvp <- prop ~ block + water * potassium
+
+# Matrix linear predictor
+Z0 <- mc_id(soybeanwp)
+
+# Fitting extended Poisson-Tweedie models 
+fit.nvp <- mcglm(linear_pred = c(f.nvp), matrix_pred = list(c(Z0)),
+                link = "logit", variance = "binomialP", 
+                power_fixed = TRUE, Ntrial = list(Ntrial),
+                data = soybeanwp)
+summary(fit.nvp, print = c("Dispersion"))
+anova(fit.nvp)
+```
+
+  - Modelling the continuous outcomes.
+
+```{r, message=FALSE}
+# Linear predictors
+f.yield <- yield ~ block + water * potassium
+f.w100 <- w100 ~ block + water * potassium
+f.Kconc <- Kconc ~ block + water * potassium
+
+# Fitting univariate Gaussian models
+# Outcome: yield
+fit1.yield <- mcglm(linear_pred = c(f.yield), matrix_pred = list(c(Z0)),
+                    data = soybeanwp)
+# Outcome: w100
+fit1.w100 <- mcglm(linear_pred = c(f.w100), matrix_pred = list(c(Z0)),
+                    data = soybeanwp)
+# Outcome: Kconc
+fit1.Kconc <- mcglm(linear_pred = c(f.Kconc), matrix_pred = list(c(Z0)),
+                    data = soybeanwp)
+
+# MANOVA for the three continuous outcomes
+manova_fit <- manova(cbind(yield, w100, Kconc) ~ block + water * potassium,
+                     data = soybeanwp)
+
+# MANOVA fitted by the mcglm package
+manova_mcglm <- mcglm(linear_pred = c(f.yield, f.w100, f.Kconc),
+                      matrix_pred = list(c(Z0),c(Z0),c(Z0)),
+                      control_algorithm = list(correct = FALSE),
+                      data = soybeanwp)
+
+# Comparing the fits (they provide exactly the same fit)
+source("../review/functions.R")
+logLik.mlm(manova_fit) # MANOVA function
+plogLik(manova_mcglm) # McGLM function
+
+# Multivariate hypotheses tests
+Anova(manova_fit, test = "Hotelling-Lawley", type = "III")
+manova.mcglm(manova_mcglm)
+```
+  - What about the counting and binomial outcomes?
+```{r}
+mcglm_4all <- mcglm(linear_pred = c(f.yield, f.w100, f.Kconc, f.tg, f.nvp),
+                    matrix_pred = list(c(Z0),c(Z0),c(Z0),c(Z0), c(Z0)),
+                    link = c("identity","identity","identity","log","logit"),
+                    variance = c("constant","constant","constant",
+                                 "poisson_tweedie","binomialP"),
+                    Ntrial = list(NULL, NULL, NULL, NULL, Ntrial),
+                    control_algorithm = list(correct = FALSE),
+                    data = soybeanwp)
+# Multivariate hypotheses tests for non-Gaussian data
+manova.mcglm(mcglm_4all)
+
+# Correlation matrix between responses
+COR <- Matrix(0, 5, 5)
+COR[lower.tri(COR)] <- mcglm_4all$Covariance[1:10]
+COR <- matrix(forceSymmetric(COR, uplo = TRUE), 5, 5)
+colnames(COR) <- rownames(COR) <- c("yield", "w100", "K", "tg", "nvp")
+corrplot(COR, type =  "upper",
+         tl.pos = "d",
+         outline = TRUE,
+         method = "ellipse")
+```
 
 # References
 

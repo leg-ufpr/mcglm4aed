@@ -16,12 +16,12 @@ csl: ../slides/config/elsevier-harvard.csl
 source("../slides/config/_setup.R")
 ```
 
-# Data description and objectives
+# Data description and goals
 
 The dataset contains the values of chemical variables of 3 layers of the
 soil in 50 sites cultivated with teak (*Tectona grandis*). The study was
 carried out in 2015, in Teca plantations belonging to two farms located
-in the Western Region of the State of Mato Grosso. The selection of
+in the western region of the state of Mato Grosso. The selection of
 study areas within the farms was done by means of free walking, covering
 the entire cultivated area of 1869 ha, making field observations and
 delimiting plots within the stands from the characteristics of the
@@ -31,11 +31,11 @@ only fields with an area of more than seven hectares (7 ha) were
 selected, using only the areas with the same planting density,
 management practices aged 13-14 years.
 
-The objective of the study is to conduct a profile analysis to verify if
+The main goal of the study is to conduct a profile analysis to verify if
 there is a general pattern of cation concentration (K^+^, Ca^2+^ and
 Mg^2+^) in the soil layers.
 
-This dataset is part of data base with more tables (`teca_arv`,
+This dataset is part of data set with more tables (`teca_arv`,
 `teca_crapar`, `teca_cra`, `teca_gran` and `teca_qui`). These data are
 available on the package `EACS`
 (http://leg.ufpr.br/~walmes/pacotes/EACS/index.html). Please do not use
@@ -44,7 +44,7 @@ these researches are being submitted to journals at the moment. If you
 want to use the data to propose statistical methodologies, contact the
 researchers as well.
 
-# Analysis with the multivariate linear model (MLM)
+# Multivariate linear model (MLM)
 
 ## Loading the dataset
 
@@ -58,6 +58,9 @@ library(reshape2)
 library(corrplot)
 library(grid)
 library(gridExtra)
+library(mcglm)
+library(Matrix)
+
 ```
 ```{r, eval = FALSE}
 #-----------------------------------------------------------------------
@@ -254,7 +257,7 @@ linearHypothesis(m0,
                  P = M[, a == 3])
 ```
 
-## An univariate specification
+## Univariate specification
 
 ```{r}
 #-----------------------------------------------------------------------
@@ -270,7 +273,7 @@ doBy::LSmeans(an0, effect = c("cam", "res"))
 cbind(c(coef(m0)))
 ```
 
-# Analysis with the McGLM
+# Modelling the covariance structure using the `mcglm` package
 
 ## Package instalation from GitHub
 
@@ -303,25 +306,27 @@ tail(teca)
 
 # Independent covariance structure.
 Z0 <- mc_id(teca)
-length(Z0)
+Z0[[1]][1:6,1:6]
 
 # Unstructured model for covariance among cam.
 Z_ns <- mc_ns(teca, id = "loc")
-length(Z_ns)
+Z_ns[[1]][1:6,1:6]
+Z_ns[[2]][1:6,1:6]
+Z_ns[[3]][1:6,1:6]
 
 # Moving average first order structure.
 Z_ma1 <- mc_ma(id = "loc",
                time = "cam",
                data = teca,
                order = 1)
-length(Z_ma1)
+Z_ma1[[1]][1:6,1:6]
 
 # Distance based covariance structure.
 Z_dist <- mc_dist(id = "loc",
                   time = "cam",
                   data = teca,
                   method = "euclidean")
-length(Z_dist)
+Z_dist[[1]][1:6,1:6]
 
 # Random walk covariance structure.
 Z_rw <- mc_rw(id = "loc",
@@ -329,43 +334,16 @@ Z_rw <- mc_rw(id = "loc",
               data = teca,
               order = 1,
               proper = TRUE)
-length(Z_rw)
+Z_rw[[1]][1:6,1:6]
+Z_rw[[2]][1:6,1:6]
 
 #-----------------------------------------------------------------------
-# The covariance structures.
-
-# display.brewer.all()
-colr <- brewer.pal(9, "GnBu")
-colr <- colorRampPalette(colr, space = "rgb")
-
-i <- 1:9
-j <- i[i %% 3 == 0][-1] - 2.5
-myplot <- function(m, ...) {
-    levelplot(m, col.regions = colr, ...) +
-        layer(panel.abline(v = j, h = j))
-}
 ```
 
-```{r, fig.height = 7 * 3/2}
-grid.arrange(myplot(as.matrix(Z0[[1]])[i, i],
-                    main = "Independent"),
-             myplot(as.matrix(Z_ns[[1]] +
-                              0.5 * Z_ns[[2]] +
-                              0.75 * Z_ns[[3]])[i, i],
-                    main = "Unstructured"),
-             myplot(as.matrix(Z_ma1[[1]])[i, i],
-                    main = "First order moving average"),
-             myplot(as.matrix(Z_dist[[1]])[i, i],
-                    main = "Euclidian distance"),
-             myplot(solve(as.matrix(Z_rw[[1]] +
-                                    0.5 * Z_rw[[2]])[i, i]),
-                    main = "Random walk"),
-             ncol = 2)
-```
 
-## Fitting several models
+## Model fitting
 
-```{r}
+```{r, message=FALSE}
 #-----------------------------------------------------------------------
 # Fitting several competing models.
 
@@ -373,25 +351,6 @@ grid.arrange(myplot(as.matrix(Z0[[1]])[i, i],
 form <- list(lk ~ cam,
              lca ~ cam,
              lmg ~ cam)
-
-# form00 <- c( lk.1 ~ 1,  lk.2 ~ 1,  lk.3 ~ 1,
-#             lca.1 ~ 1, lca.2 ~ 1, lca.3 ~ 1,
-#             lmg.1 ~ 1, lmg.2 ~ 1, lmg.3 ~ 1)
-
-# To easy create a list of formulas.
-form00 <- sapply(sprintf("%s ~ 1",
-                         names(tecaw)[-1]),
-                 FUN = as.formula)
-
-# Independent subjects covariance structure.
-Z00 <- mc_id(tecaw)
-
-# MANOVA for all responses (wide format, subject is a single line).
-fit00 <- mcglm(linear_pred = form00,
-               matrix_pred = replicate(length(form00),
-                                       Z00,
-                                       simplify = FALSE),
-               data = tecaw)
 
 # Standard MANOVA (ignores the correlation among soil layers).
 fit1 <- mcglm(linear_pred = form,
@@ -435,7 +394,7 @@ fit5 <- mcglm(linear_pred = form,
               control_algorithm = list(tunning = 0.8),
               data = teca)
 
-# MANOVA + repeated measures using random walk + expm covariance link
+# MANOVA + repeated measures using random walk + inverse covariance link
 # function.
 fit6 <- mcglm(linear_pred = form,
               matrix_pred = list(c(Z_rw),
@@ -452,17 +411,15 @@ fit6 <- mcglm(linear_pred = form,
 
 ```{r}
 #-----------------------------------------------------------------------
-# Comparing models fit.
+# Comparing fitted models.
 
-m <- c("MANOVA",
-       "Indep",
+m <- c("Indep",
        "Unstr",
        "MA(1)",
        "Eucl",
        "Eucl expm",
        "RW expm")
-meas <- rbind(gof(fit00),
-              gof(fit1),
+meas <- rbind(gof(fit1),
               gof(fit2),
               gof(fit3),
               gof(fit4),
@@ -491,7 +448,7 @@ barchart(plogLik + pAIC + pBIC + pKLIC~ model,
                     label = meas$Df))
 ```
 
-## Pillai test for McGLM
+## Hotelling-Lawley multivariate hypotheses tests for `McGLM`
 
 ```{r}
 #-----------------------------------------------------------------------
@@ -512,6 +469,10 @@ manova.mcglm(fit2)
 
 # Correlation between responses.
 summary(fit2, print = "Correlation")
+Sigma_b <- matrix(NA,ncol = 3, nrow = 3)
+Sigma_b[lower.tri(Sigma_b)] <- fit2$Covariance[1:3]
+diag(Sigma_b) <- 1
+Sigma_b <- forceSymmetric(Sigma_b, uplo = FALSE)
 
 # Correlation among `cam` for the `lk` response.
 COR_lk <- matrix(NA, 3, 3)
@@ -519,6 +480,7 @@ COR_lk[lower.tri(COR_lk)] <- fit2$Covariance[5:7]
 COR_lk[upper.tri(COR_lk)] <- fit2$Covariance[5:7]
 diag(COR_lk) <- fit2$Covariance[4]
 cov2cor(COR_lk)
+Sigma_r1 <- COR_lk
 
 # Correlation among `cam` for the `lca` response.
 COR_lca <- matrix(NA, 3, 3)
@@ -526,6 +488,7 @@ COR_lca[lower.tri(COR_lca)] <- fit2$Covariance[9:11]
 COR_lca[upper.tri(COR_lca)] <- fit2$Covariance[9:11]
 diag(COR_lca) <- fit2$Covariance[8]
 cov2cor(COR_lca)
+Sigma_r2 <- COR_lca
 
 # Correlation among `cam` for the `lmg` response.
 COR_lmg <- matrix(NA, 3, 3)
@@ -533,8 +496,21 @@ COR_lmg[lower.tri(COR_lmg)] <- fit2$Covariance[13:15]
 COR_lmg[upper.tri(COR_lmg)] <- fit2$Covariance[13:15]
 diag(COR_lmg) <- fit2$Covariance[12]
 cov2cor(COR_lmg)
+Sigma_r3 <- COR_lmg
 
-# TODO How create the 9 x 9 correlogran using these values?
+# Joint variance covariance matrix
+part1 <- bdiag(t(chol(Sigma_r1)),t(chol(Sigma_r2)),t(chol(Sigma_r3)))
+image(part1)
+
+I <- Diagonal(3,1)
+part2 <- kronecker(Sigma_b,I)
+image(part2)
+C <- as.matrix(part1%*%part2%*%t(part1))
+corrplot(cov2cor(C), 
+         tl.pos = "d",
+         outline = TRUE,
+         method = "ellipse")
+
 ```
 
 # References

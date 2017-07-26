@@ -223,17 +223,19 @@ head(wrcp)
 # Covariance structures for the inner subject factor `depth`.
 
 # Independent covariance structure.
+wrcp$depth20 <- wrcp$depth/20
 Z0 <- mc_id(wrcp)
 length(Z0)
 
 # Distance based covariance structure.
-Z_dist <- mc_dist(id = "eu",
-                  time = "Depth",
-                  data = wrcp,
-                  method = "euclidean")
-length(Z_dist)
+Z_dist <- mc_ma(id = "eu",
+                  time = "depth",
+                  data = wrcp, order = 1)
 
-linpred <- sapply(sprintf("%s ~ Pos * Depth",
+Z_cp <- mc_mixed(~ 0 + eu, data = wrcp)
+
+
+linpred <- sapply(sprintf("%s ~ Pos + Depth",
                           colnames(m0$model[[1]])),
                   FUN = as.formula)
 linpred
@@ -243,14 +245,56 @@ mc0 <- mcglm(linear_pred = linpred,
                                      Z0,
                                      simplify = FALSE),
              data = wrcp)
+summary(mc0)
+
+mc0 <- mcglm(linear_pred = c(linpred[[1]], linpred[[2]], 
+                             linpred[[3]]),
+             matrix_pred = list(c(Z0,Z_dist), c(Z0,Z_dist),
+                                c(Z0,Z_dist)),
+             data = wrcp, 
+             covariance = c("expm","expm","expm"),
+             control_algorithm = list(tunning = 1, max_iter = 200, 
+                                      verbose = TRUE))
+summary(mc0)
+
+mc1 <- mcglm(linear_pred = c(linpred[[1]]),
+             matrix_pred = list(c(Z0,Z_dist)),
+             data = wrcp, 
+             covariance = c("expm"),
+             control_algorithm = list(tunning = 1, max_iter = 200, 
+                                      verbose = TRUE))
+mc2 <- mcglm(linear_pred = c(linpred[[2]]),
+             matrix_pred = list(c(Z0,Z_dist)),
+             data = wrcp, 
+             covariance = c("expm"),
+             control_algorithm = list(tunning = 1, max_iter = 200, 
+                                      verbose = TRUE))
+mc3 <- mcglm(linear_pred = c(linpred[[3]]),
+             matrix_pred = list(c(Z0,Z_dist)),
+             data = wrcp, 
+             covariance = c("expm"),
+             control_algorithm = list(tunning = 1, max_iter = 200, 
+                                      verbose = TRUE))
+mc4 <- mcglm(linear_pred = c(linpred[[4]]),
+             matrix_pred = list(c(Z0,Z_dist)),
+             data = wrcp, 
+             covariance = c("expm"),
+             control_algorithm = list(tunning = 1, max_iter = 200, 
+                                      verbose = TRUE))
+
+cor(cbind(residuals(mc1)[,1],residuals(mc2)[,1],residuals(mc3)[,1],residuals(mc4)[,1]))
+
 
 # FIXME: this returns an error.
-# mc1 <- mcglm(linear_pred = linpred,
-#              matrix_pred = replicate(length(linpred),
-#                                      Z_dist,
-#                                      simplify = FALSE),
-#              control_algorithm = list(tunning = 0.8),
-#              data = wrcp)
+mc1 <- mcglm(linear_pred = linpred,
+             matrix_pred = list(c(Z0, Z_dist),c(Z0, Z_dist),
+                                c(Z0, Z_dist),c(Z0, Z_dist)),
+             covariance = rep("expm",4),
+              control_algorithm = list(tunning = 0.5, max_iter = 100,
+                                       verbose = TRUE),
+              data = wrcp)
+summary(mc1)
+head(wrcp)
 #--------------------------------------------
 # Automatic initial values selected.
 # Error in .local(x, ...) :

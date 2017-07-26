@@ -29,7 +29,15 @@ bibliography: config/ref.bib
 cls: config/elsevier-harvard.csl
 ---
 
-## A more general setup
+## General linear model
+
+```{r, include = FALSE}
+source("config/_setup.R")
+```
+
+```{r, echo = FALSE, out.width = "75%"}
+include_graphics("img/matricial_manova_2.png")
+```
 
   * MANOVA can deal only with Gaussian data.
   * Homogeneity of variances and covariances.
@@ -38,15 +46,7 @@ cls: config/elsevier-harvard.csl
     - Generalized linear models (GLM) to deal with non-Gaussian data.
     - Flexibility to deal with different types of dependence structures.
     - Multivariate response variables, possibly of mixed types.
-    - Ideal approach -- easy to specify, fit, interpret and teach.
-
-```{r, include = FALSE}
-source("config/_setup.R")
-```
-```{r, include = FALSE}
-data(iris)
-head(iris)
-```
+    - Easy to specify, fit, interpret and teach.
 
 # Multivariate analysis of non-Gaussian data
 
@@ -56,7 +56,7 @@ head(iris)
     - Non-negative highly right-skewed data and continuous data with
       probability mass at zero [@Bonat:2017].
     - Under, equi, overdispersed, zero-inflated and heavy-tailed
-      count data [@Bonat:2017a].
+      count data [@Bonat:2017a, @Bonat:2016a].
     - Bounded data [@Bonat:2017b].
   * Goal 2: Extend GLM to cGLM to deal with:
     - Mixed models [@Bates:2015].
@@ -69,7 +69,7 @@ head(iris)
     - Response variables of mixed types [@Bonat:2017c].
     - Identify the general linear model and MANOVA as special cases.
   * Goal 4: Extend multivariate hypotheses tests to non-Gaussian data.
-  * Goal 5: Provide software implementation in $\textsf{R}$.
+  * Goal 5: Provide software implementation in R [@Bonat:2018].
 
 ## Flexible Generalized Linear Models
 
@@ -326,7 +326,7 @@ head(iris)
 
 # Estimation and Inference
 
-## Model specification
+## McGLM - Parametrization
 
   * Let $\mathcal{Y} = (\boldsymbol{Y}_1^\top, \ldots,
     \boldsymbol{Y}_R^\top)^\top$ be the stacked vector $(NR \times 1)$
@@ -448,6 +448,7 @@ head(iris)
 ## Overview of the `mcglm` package.
 
   * Package `mcglm` available at `github` and CRAN.
+  * Main reference @Bonat:2017c.
   * Instalation
 ```{r, eval = FALSE}
 library(devtools)
@@ -518,181 +519,7 @@ args(mcglm)
   - GOF's implemented: `plogLik`, `pAIC`, `pKLIC`, `pBIC`, `ESS`,
     `GOSHO` and `RJC`.
 
-# Study cases
-
-## Example 1: `iris` data set
-
-```{r, message = FALSE}
-# Loading extra packages and functions
-library(mvtnorm)
-library(Matrix)
-library(mcglm)
-library(wzRfun)
-library(corrplot)
-source("../review/functions.R")
-```
-
-```{r, message = FALSE}
-#-----------------------------------------------------------------------
-# MLM with lm() and manova().
-
-data(iris)
-
-# Standard general linear model.
-fit1 <- lm(cbind(Sepal.Length,
-                 Sepal.Width,
-                 Petal.Length,
-                 Petal.Width) ~ Species,
-           data = iris)
-
-#-----------------------------------------------------------------------
-# General linear model in the `mcglm` package.
-
-# Linear predictors.
-linear_pred <- c(Sepal.Length ~ Species,
-                 Sepal.Width  ~ Species,
-                 Petal.Length ~ Species,
-                 Petal.Width  ~ Species)
-
-# Matrix linear predictor.
-Z0 <- mc_id(iris)
-
-# Fitting.
-fit2 <- mcglm(linear_pred = linear_pred,
-              matrix_pred = list(Z0, Z0, Z0, Z0),
-              link = rep("identity", 4),
-              variance = rep("constant", 4),
-              data = iris,
-              control_algorithm = list(correct = FALSE))
-
-# Comparing lm() and mcglm().
-logLik.mlm(fit1)
-plogLik(fit2)
-
-# Multivariate hypothesis test.
-summary(manova(fit1),
-        test = "Hotelling-Lawley")
-
-# Multivariate hypothesis test using mcglm.
-manova.mcglm(fit2)
-```
-
-## Example 2: `soybeanwp` data set
-
-```{r, message = FALSE}
-# rm(list = ls())
-
-# Loading data set.
-data(soybeanwp)
-
-# Removes an outlier.
-soybeanwp <- soybeanwp[-74,]
-
-# Transform factors and create variables.
-soybeanwp <- within(soybeanwp, {
-    potassium <- as.factor(potassium)
-    water <- as.factor(water)
-    block <- as.factor(block)
-    total <- nvp + nip
-    viab <- nvp/total
-})
-str(soybeanwp)
-
-# Setting the contrasts option to contr.sum.
-options(contrasts = c(unordered = "contr.sum",
-                      ordered = "contr.poly"))
-
-#--------------------------------------------
-# Standard MANOVA ignoring count and binomial data.
-
-fit_man <- manova(cbind(yield, w100, Kconc, tg, viab) ~
-                      block + water * potassium,
-                  data = soybeanwp)
-
-#--------------------------------------------
-# McGLM.
-
-# Linear predictors.
-# Short code to create formulas.
-# dput(names(soybeanwp))
-form <- sprintf("%s ~ block + water * potassium",
-                c("yield", "w100", "Kconc", "tg", "viab"))
-form <- sapply(form, FUN = as.formula)
-form
-
-# Matrix linear predictor.
-Z0 <- mc_id(soybeanwp)
-
-# MANOVA fitted using mcglm.
-r <- 5
-fit_lm <- mcglm(linear_pred = c(form),
-                matrix_pred = replicate(r, Z0, simplify = FALSE),
-                link = rep("identity", each = r),
-                variance = rep("constant", times = r),
-                Ntrial = replicate(5, NULL),
-                data = soybeanwp,
-                control_algorithm = list(correct = FALSE))
-
-# Fitting
-fit_mcglm <- mcglm(linear_pred = c(form),
-                   matrix_pred = list(Z0,
-                                      Z0,
-                                      Z0,
-                                      Z0,
-                                      Z0),
-                   link = c("identity",
-                            "identity",
-                            "identity",
-                            "log",
-                            "logit"),
-                   variance = c("constant",
-                                "constant",
-                                "constant",
-                                "tweedie",
-                                "binomialP"),
-                   Ntrial = list(NULL,
-                                 NULL,
-                                 NULL,
-                                 NULL,
-                                 soybeanwp$total),
-                   data = soybeanwp,
-                   control_algorithm = list(correct = FALSE))
-
-# Comparison using pseudo-logLik.
-logLik.mlm(fit_man)
-plogLik(fit_lm)
-plogLik(fit_mcglm)
-
-# MANOVA test.
-# summary(fit_man, test = "Hotelling-Lawley")
-car::Anova(fit_man, test = "Hotelling-Lawley", type = "III")
-manova.mcglm(fit_lm)
-
-# Multivariate hypothesis test.
-manova.mcglm(fit_mcglm)
-
-# Correlation among responses.
-COR <- Matrix(0, 5, 5)
-COR[lower.tri(COR)] <- fit_mcglm$Covariance[1:10]
-COR <- matrix(forceSymmetric(COR, uplo = TRUE), 5, 5)
-colnames(COR) <- rownames(COR) <- c("yield", "w100", "K", "tg", "viab")
-```
-
-```{r, fig.height = 7, fig.width = 7}
-corrplot(COR,
-         type = "upper",
-         tl.pos = "d",
-         outline = TRUE,
-         method = "ellipse")
-corrplot(COR,
-         add = TRUE,
-         type = "lower",
-         method = "number",
-         col = "black",
-         diag = FALSE,
-         tl.pos = "n",
-         cl.pos = "n")
-```
+# Data analyses
 
 # Concluding remarks
 
@@ -704,8 +531,6 @@ corrplot(COR,
   * Efficient algorithms for estimation.
   * Asymptotic theory (Godambe Information).
   * Multivariate hypotheses tests for non-Gaussian data.
-
-## Future work
 
 ### Extensions
 
@@ -747,10 +572,13 @@ if (knitr::opts_knit$get("rmarkdown.pandoc.to") == "slidy") {
 <p style='font-size: 80px;'>Thank you!</p>
 
 <p>
-  We are waiting you at Curitiba/PR for the 63<sup>a</sup> RBras!
+  See you in Curitiba/PR for the 63<sup>a</sup> RBras!
   </br>
   Save the date: May 23 -- 25, 2018.
 </p>
+
+<p style='font-size: 30px;'> Wagner Hugo Bonat LEG/UFPR (wbonat@ufpr.br) </p>
+<p style='font-size: 30px;'> Walmes Marques Zeviani LEG/UFPR (walmes@ufpr.br) </p>
 </center>
 
 ```{r, eval = FALSE, include = FALSE}

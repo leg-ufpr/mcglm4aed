@@ -22,7 +22,7 @@ Pests and diseases of foliage, phytotoxicity of chemicals, hail and some
 mechanical injuries are the main agents of defoliation in cotton. The
 purpose of this research was to study the effect of defoliation levels
 at different growth stages of cotton. The study was conducted in a
-greenhouseand the experimental design was completely randomized in
+greenhouse and the experimental design was completely randomized in
 factorial 5 defoliation levels x 5 growth stages. The response variables
 were: number of bolls produced (`nb`), number of bolls viable, total
 boll weight (`wb`), plant height (`hei`) and number of plant nodes
@@ -48,6 +48,8 @@ library(car)
 library(candisc)
 library(doBy)
 library(multcomp)
+library(mcglm)
+library(Matrix)
 ```
 
 ```{r}
@@ -158,7 +160,7 @@ Anova(m0)
 # Testing only for the `hei` and `nn` responses.
 linearHypothesis(m0,
                  hypothesis.matrix = A,
-                 test = "Pillai",
+                 test = "Hotelling-Lawley",
                  P = cbind(c(0, 1, 0, 0),
                            c(0, 0, 0, 1)))
 ```
@@ -188,14 +190,38 @@ combineLimits(
                data = cd$scores)))
 ```
 
-# Using the `mcglm` package
+# Modelling multivariate continuous and counting outcomes using the `mcglm` package
 
-```{r}
-# Load the package.
-library(mcglm)
+```{r, message = FALSE}
 source("../review/functions.R")
-# library(Matrix)
-# packageVersion("mcglm")
+# Linear predictors
+f.wb <- wb ~ GS * Def
+f.hei <- hei ~ GS * Def
+f.nb <- nb ~ GS * Def
+f.nn <- nn ~ GS * Def
+
+# Matrix linear predictor
+Z0 <- mc_id(cot)
+
+# Fitting
+fit1 <- mcglm(c(f.wb, f.hei, f.nb, f.nn), list(Z0,Z0,Z0,Z0),
+              link = c("identity","identity","log","log"),
+              variance = c("constant","constant",
+                           "poisson_tweedie","poisson_tweedie"),
+              control_algorithm = list(tunning = 0.8),
+              data = cot)
+
+# Dispersion structure
+summary(fit1, print = "Dispersion")
+
+# Correlation between outcomes
+summary(fit1, print = "Correlation")
+
+# Multivariate Hotelling-Lawley test
+manova.mcglm(fit1)
+
+
+
 ```
 
 # References
