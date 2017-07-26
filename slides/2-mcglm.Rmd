@@ -571,14 +571,14 @@ if (knitr::opts_knit$get("rmarkdown.pandoc.to") == "slidy") {
 <center>
 <p style='font-size: 80px;'>Thank you!</p>
 
-<p>
+<p style='font-size: 30px;'>
   See you in Curitiba/PR for the 63<sup>a</sup> RBras!
   </br>
   Save the date: May 23 -- 25, 2018.
 </p>
 
-<p style='font-size: 30px;'> Wagner Hugo Bonat LEG/UFPR (wbonat@ufpr.br) </p>
-<p style='font-size: 30px;'> Walmes Marques Zeviani LEG/UFPR (walmes@ufpr.br) </p>
+<p style='font-size: 20px;'> Wagner Hugo Bonat</br><code>wbonat@ufpr.br</code></br>LEG/UFPR</p>
+<p style='font-size: 20px;'> Walmes Marques Zeviani</br><code>walmes@ufpr.br</code></br>LEG/UFPR</p>
 </center>
 
 ```{r, eval = FALSE, include = FALSE}
