@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+
+
+
+<title></title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/united.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-1.1/default.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-1.1/highlight.js"></script>
+<link href="site_libs/font-awesome-4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+      "HTML-CSS": {
+          scale: 85,
+          availableFonts: ["TeX"],
+      },
+      "TeX": {
+          extensions: ["color.js"]
+      }
+  });
+</script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+<link rel="stylesheet" href="config/site-style.css" type="text/css" />
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+  height: auto;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 51px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+
+.section h2 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h3 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h4 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h5 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+.section h6 {
+  padding-top: 56px;
+  margin-top: -56px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+
+<div class="container-fluid main-container">
+
+<!-- tabsets -->
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+</script>
+
+<!-- code folding -->
+
+
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">mcglm4aed</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Slides
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="slides/0-intro.html">Introduction and Outline</a>
+    </li>
+    <li>
+      <a href="slides/1-mlm.html">Multivariate Gaussian linear models</a>
+    </li>
+    <li>
+      <a href="slides/2-mcglm.html">Multivariate covariance generalized linear models</a>
+    </li>
+  </ul>
+</li>
+<li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    Tutorials
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="tutorials/0-computation-simulation.html">Computation and simulation</a>
+    </li>
+    <li>
+      <a href="tutorials/4-soybean.html">The soybean dataset</a>
+    </li>
+    <li>
+      <a href="tutorials/3-teca.html">The teak dataset</a>
+    </li>
+    <li>
+      <a href="tutorials/5-wrc.html">Water retention curves</a>
+    </li>
+    <li>
+      <a href="tutorials/6-cotton.html">Cotton production under defoliation</a>
+    </li>
+    <li>
+      <a href="tutorials/sequential-marginal.html">Sequential vs marginal</a>
+    </li>
+  </ul>
+</li>
+<li>
+  <a href="https://github.com/leg-ufpr/mcglm4aed/tree/master/slides/scripts">Scripts</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        <li>
+  <a href="https://github.com/leg-ufpr/mcglm4aed">
+    <span class="fa fa-github fa-lg"></span>
+     
+    GitHub
+  </a>
+</li>
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+
+</div>
+
+
+<p><img src="logo.png" width="150px" align="right" display="block" style="margin-top: 1em;"></p>
+<h1 style="margin-top: 1em;">
+Multivariate Covariance Generalized Linear Models for the Analysis of Experimental Data
+</h1>
+<div style="height: 8ex; margin: 2em 5em 1em 0em;">
+<div style="width: 40%; float: left">
+<center>
+<a href="http://leg.ufpr.br/doku.php/pessoais:wbonat">Wagner Hugo Bonat</a><br/> <code>wbonat at ufpr.br</code><br/> Departamento de Estatística - UFPR
+</center>
+</div>
+<div style="width: 40%; float: left">
+<center>
+<a href="http://leg.ufpr.br/~walmes/">Walmes Marques Zeviani</a><br/> <code>walmes at ufpr.br</code><br/> Departamento de Estatística - UFPR
+</center>
+</div>
+</div>
+<p></br></p>
+<div id="abstract" class="section level2">
+<h2>Abstract</h2>
+<p>The design and analysis of experiments have a prominent role in science and analysis of variance (ANOVA) methods have been the workhorse for analysis of such data for decades. Despite of the flexibility of the ANOVA framework in terms of experimental design, in general the models in this class deal only with a single independent Gaussian variable at once. In many experiments more than one response is of interest for the experimenter. A natural extension of the ANOVA methods for multivariate Gaussian data is the multivariate analysis of variance (MANOVA). However, the extension of MANOVA methods for non-Gaussian data is not thoroughly discussed in the literature.</p>
+<p>The main goal of this course is to discuss the analysis of multivariate experimental data based on the recently proposed multivariate covariance generalized linear models (McGLM) framework (Bonat and Jørgensen; 2016)<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a>. This class of models can deal with multiple non-Gaussian response variables and can easily be adapted to deal with the most commons types of experimental designs, including multilevel and longitudinal designs and correlated responses. McGLMs can be seen as a extension of the MANOVA approach for the analysis of non-Gaussian data.</p>
+<p>We present the model specification along with strategies for model fitting and the associated <code>R</code> code. Through study cases, we shall discuss the benefits, drawbacks and cautions when using McGLMs. The <code>R</code> package <code>mcglm</code> (Bonat and Jørgensen; 2016) is presented and supplementary material as <code>R</code> (R Core Team; 2015)<a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a> code and data sets will be made available for the students.</p>
+<p><strong>Key-words</strong>: multivariate response, generalized estimating equations, Poisson-Tweedie, count data.</p>
+<hr />
+</div>
+<div id="information" class="section level2">
+<h2>Information</h2>
+<ul>
+<li>Short-course at: <a href="http://www.rbras.org.br/rbras62/">62nd RBras and 17th SEAGRO meeting</a></li>
+<li>Date: July 24th – 28th, 2017</li>
+<li>Local: Lavras-MG, Brazil</li>
+<li>Workload: 4 hours</li>
+</ul>
+<!------------------------------------------- -->
+</div>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>Bonat, W. H. and Jørgensen, B. (2016). Multivariate covariance generalized linear models, <em>Journal of the Royal Statistical Society: Series C (Applied Statistics)</em>. to appear.<a href="#fnref1">↩</a></p></li>
+<li id="fn2"><p>R Core Team (2015). <em>R: A Language and Environment for Statistical Computing</em>, R Foundation for Statistical Computing, Vienna, Austria. ISBN 3-900051-07-0.<a href="#fnref2">↩</a></p></li>
+</ol>
+</div>
+
+<style type="text/css">
+div.icons img {
+  margin: 0 1ex 0 1ex;
+}
+</style>
+
+<footer>
+  <div class="icons" style="margin-top: 3em;">
+    <center>
+      <img src="slides/config/leg.png" width="120px">
+      <img src="config/dest.png" width="120px">
+      <img src="config/ufpr.jpg" width="200px">
+      <img src="config/rbras.png" width="120px">
+      <img src="config/ibs.jpg" width="120px">
+    </center>
+  </div>
+
+  <p class="text-center" style="margin-top: 1em;">
+    <small>
+      Copyright © 2017, Walmes Marques Zeviani
+      <br>
+      Technologies used: rmarkdown.
+    </small>
+  </p>
+</footer>
+
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
